@@ -1,12 +1,22 @@
 // #todo: Separate image manager
-use image::png::PNGEncoder;
+use image::png::PngEncoder;
 use image::ColorType;
 use std::fs::File;
+
+mod voxel;
+use voxel::VoxelBuffer;
 
 const FILENAME: &str = "test.png";
 
 fn main() {
     println!("Hello, world!");
+
+	// Test: VoxelBuffer
+	{
+		let mut voxel_buffer = VoxelBuffer::new(10, 10, 10);
+		voxel_buffer.write(0, 0, 0, 3.14);
+		println!("voxel_buffer[0,0,0] = {}", voxel_buffer.read(0, 0, 0));
+	}
 
     let mut buffer: Vec<u8> = Vec::new();
     let width: u32 = 512;
@@ -29,7 +39,7 @@ fn main() {
 
     let out_file = File::create(FILENAME).unwrap();
 
-    let encoder = PNGEncoder::new(&out_file);
+    let encoder = PngEncoder::new(&out_file);
     encoder.encode(&buffer, width, height, color_type).unwrap();
 
     out_file.sync_all().unwrap();
