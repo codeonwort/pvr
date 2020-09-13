@@ -1,4 +1,3 @@
-
 pub struct VoxelBuffer {
 	size_x: i32,
 	size_y: i32,
