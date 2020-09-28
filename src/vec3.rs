@@ -168,3 +168,26 @@ impl PartialEq for Vec3 {
         self.x == rhs.x && self.y == rhs.y && self.z == rhs.z
     }
 }
+
+/*
+fn test_vec3() {
+	let v1 = Vec3::new(5.0, 1.0, 2.5);
+	let v2 = Vec3::new(2.5, 3.3, 1.0);
+	println!("v1 = {:?}", v1);
+	println!("v2 = {:?}", v2);
+	println!("-v1 = {:?}", -v1);
+	println!("v1 + v2 = {:?}", v1 + v2);
+	println!("v1 - v2 = {:?}", v1 - v2);
+	println!("v1 * v2 = {:?}", v1 * v2);
+	println!("v1 / v2 = {:?}", v1 / v2);
+	println!("v1 & v2 = {:?}", v1 & v2);
+	println!("v1 ^ v2 = {:?}", v1 ^ v2);
+	println!("v1 == v2 = {:?}", v1 == v2);
+	println!("v1.length() = {:?}", v1.length());
+	println!("v1.normalize() = {:?}", v1.normalize());
+	println!("distance(v1, v2) = {:?}", Vec3::distance(v1, v2));
+	println!("v1 * 2.0 = {:?}", v1 * 2.0);
+	println!("3.0 * v1 = {:?}", 3.0 * v1);
+	println!("v2 / 2.0 = {:?}", v2 / 2.0);
+}
+*/

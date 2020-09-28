@@ -5,9 +5,12 @@ use image::ColorType;
 use std::fs::File;
 
 // ----------------------------------------------------------
-// module: voxel
+// module: voxel and volume
 mod voxel;
+mod volume;
 use voxel::VoxelBuffer;
+use volume::Volume;
+use volume::ConstantVolume;
 
 // ----------------------------------------------------------
 // module: rendertarget
@@ -16,9 +19,14 @@ use rendertarget::Pixel;
 use rendertarget::RenderTarget;
 
 // ----------------------------------------------------------
-// module: vec3
+// module: vec3, ray, and camera
+// #todo-module: This is definitely going weird. Cleanup mod imports.
 mod vec3;
+mod ray;
+mod camera;
 use vec3::Vec3;
+use ray::Ray;
+use camera::Camera;
 
 // ----------------------------------------------------------
 // program code
@@ -38,40 +46,40 @@ fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
     out_file.sync_all().unwrap();
 }
 
-/*fn write_png(filename: &str, buffer: &[u8],
-            width: u32, height: u32, color_type: ColorType) {
-    let out_file = File::create(filename).unwrap();
+fn integrate_emission(vol: &Volume, ray: Ray) -> Vec3 {
+	// #todo: proper step size
+	let step_size: f32 = 1.0;
 
-    let encoder = PNGEncoder::new(&out_file);
-    encoder.encode(&buffer, width, height, color_type).unwrap();
-
-    out_file.sync_all().unwrap();
-}*/
+	// Integration bounds
+	let interval = vol.get_intersection(ray);
+	match interval {
+		None => Vec3::new(0.0, 0.0, 0.0),
+		Some((t_start, t_end)) => {
+			let mut t_current = t_start;
+			let mut T: f32 = 1.0;
+			let mut L: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+		
+			while t_current < t_end {
+				let p_i: Vec3 = ray.at(t_current);
+				let Le: Vec3 = vol.emission(p_i);
+				let sigma_a: f32 = vol.absorption(p_i);
+				let T_i: f32 = (-sigma_a * step_size).exp();
+				T *= T_i;
+				L = L + T * Le;
+				t_current += step_size;
+			}
+		
+			L
+		}
+	}
+}
 
 fn main() {
     let width: usize = 512;
-    let height: usize = 512;
-	let mut rt: RenderTarget = RenderTarget::new(width, height); 
-
-	// Test: vec3
-	let v1 = Vec3::new(5.0, 1.0, 2.5);
-	let v2 = Vec3::new(2.5, 3.3, 1.0);
-	println!("v1 = {:?}", v1);
-	println!("v2 = {:?}", v2);
-	println!("-v1 = {:?}", -v1);
-	println!("v1 + v2 = {:?}", v1 + v2);
-	println!("v1 - v2 = {:?}", v1 - v2);
-	println!("v1 * v2 = {:?}", v1 * v2);
-	println!("v1 / v2 = {:?}", v1 / v2);
-	println!("v1 & v2 = {:?}", v1 & v2);
-	println!("v1 ^ v2 = {:?}", v1 ^ v2);
-	println!("v1 == v2 = {:?}", v1 == v2);
-	println!("v1.length() = {:?}", v1.length());
-	println!("v1.normalize() = {:?}", v1.normalize());
-	println!("distance(v1, v2) = {:?}", Vec3::distance(v1, v2));
-	println!("v1 * 2.0 = {:?}", v1 * 2.0);
-	println!("3.0 * v1 = {:?}", 3.0 * v1);
-	println!("v2 / 2.0 = {:?}", v2 / 2.0);
+	let height: usize = 512;
+	let aspect_ratio = (width as f32) / (height as f32);
+	let fov_y = 45.0;
+	let mut rt: RenderTarget = RenderTarget::new(width, height);
 
 	// Test: VoxelBuffer
 	{
@@ -80,16 +88,29 @@ fn main() {
 		println!("voxel_buffer[0,0,0] = {}", voxel_buffer.read(0, 0, 0));
 	}
 
+	let camera = Camera::new(
+		Vec3::new(0.0, 0.0, -10.0), Vec3::new(0.0, 0.0, 10.0), Vec3::new(0.0, 1.0, 0.0),
+		fov_y, aspect_ratio);
+
+	let inv_width = 1.0 / (width as f32);
+	let inv_height = 1.0 / (height as f32);
+
+	let vol = ConstantVolume::new(Vec3::new(0.0, 0.0, 0.0), 2.0, Vec3::new(1.0, 0.1, 0.1), 0.5);
+
     for y in 0..height {
         for x in 0..width {
-			let r = (1.0 + (0.1 * x as f32).sin()) * 0.5;
-			let g = (1.0 + (0.1 * y as f32).cos()) * 0.5;
-			rt.set(x as i32, y as i32, Pixel{ r: r, g: g, b: 0.0} );
+			let u = (x as f32) * inv_width;
+			let v = (y as f32) * inv_height;
+
+			let ray = camera.get_ray(u, v);
+			let final_color = integrate_emission(&vol, ray);
+
+			// #todo: tone mapping
+			rt.set(x as i32, y as i32, Pixel { r: final_color.x, g: final_color.y, b: final_color.z });
         }
     }
 
 	print_rendertarget(&rt, FILENAME);
-    //write_png(FILENAME, &buffer, width, height, color_type);
 
     println!("Output: {}", FILENAME);
 }

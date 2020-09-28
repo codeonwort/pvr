@@ -1,5 +1,4 @@
-// To layout struct in a way compatible with C/C++,
-// use #[repr(C)] attributes. (Chapter 21)
+// To layout struct in a way compatible with C/C++, use #[repr(C)] attributes. (Chapter 21)
 
 #[derive(Copy, Clone, Default)]
 pub struct Pixel {
