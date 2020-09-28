@@ -26,8 +26,8 @@ impl Vec3 {
     pub fn distance(a: Vec3, b: Vec3) -> f32 {
         (a - b).length()
     }
-    pub fn distanceSq(a: Vec3, b: Vec3) -> f32 {
-        (a - b).lengthSq()
+    pub fn distance_sq(a: Vec3, b: Vec3) -> f32 {
+        (a - b).length_sq()
     }
 
     pub fn dot(&self, rhs: Vec3) -> f32 {
@@ -36,11 +36,11 @@ impl Vec3 {
     pub fn cross(&self, rhs: Vec3) -> Vec3 {
         (*self) ^ rhs
     }
-    pub fn lengthSq(&self) -> f32 {
+    pub fn length_sq(&self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
     pub fn length(&self) -> f32 {
-        self.lengthSq().sqrt()
+        self.length_sq().sqrt()
     }
     pub fn normalize(&self) -> Vec3 {
         let w = 1.0 / self.length();
