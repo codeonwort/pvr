@@ -54,8 +54,8 @@ fn main() {
 	let mut rt: RenderTarget = RenderTarget::new(width, height); 
 
 	// Test: vec3
-	let v1 = Vec3 { x: 5.0, y: 1.0, z: 2.5 };
-	let v2 = Vec3 { x: 2.5, y: 3.3, z: 1.0 };
+	let v1 = Vec3::new(5.0, 1.0, 2.5);
+	let v2 = Vec3::new(2.5, 3.3, 1.0);
 	println!("v1 = {:?}", v1);
 	println!("v2 = {:?}", v2);
 	println!("-v1 = {:?}", -v1);
@@ -66,6 +66,12 @@ fn main() {
 	println!("v1 & v2 = {:?}", v1 & v2);
 	println!("v1 ^ v2 = {:?}", v1 ^ v2);
 	println!("v1 == v2 = {:?}", v1 == v2);
+	println!("v1.length() = {:?}", v1.length());
+	println!("v1.normalize() = {:?}", v1.normalize());
+	println!("distance(v1, v2) = {:?}", Vec3::distance(v1, v2));
+	println!("v1 * 2.0 = {:?}", v1 * 2.0);
+	println!("3.0 * v1 = {:?}", 3.0 * v1);
+	println!("v2 / 2.0 = {:?}", v2 / 2.0);
 
 	// Test: VoxelBuffer
 	{
