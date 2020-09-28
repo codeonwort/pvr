@@ -16,6 +16,11 @@ use rendertarget::Pixel;
 use rendertarget::RenderTarget;
 
 // ----------------------------------------------------------
+// module: vec3
+mod vec3;
+use vec3::Vec3;
+
+// ----------------------------------------------------------
 // program code
 const FILENAME: &str = "test.png";
 
@@ -48,6 +53,20 @@ fn main() {
     let height: usize = 512;
 	let mut rt: RenderTarget = RenderTarget::new(width, height); 
 
+	// Test: vec3
+	let v1 = Vec3 { x: 5.0, y: 1.0, z: 2.5 };
+	let v2 = Vec3 { x: 2.5, y: 3.3, z: 1.0 };
+	println!("v1 = {:?}", v1);
+	println!("v2 = {:?}", v2);
+	println!("-v1 = {:?}", -v1);
+	println!("v1 + v2 = {:?}", v1 + v2);
+	println!("v1 - v2 = {:?}", v1 - v2);
+	println!("v1 * v2 = {:?}", v1 * v2);
+	println!("v1 / v2 = {:?}", v1 / v2);
+	println!("v1 & v2 = {:?}", v1 & v2);
+	println!("v1 ^ v2 = {:?}", v1 ^ v2);
+	println!("v1 == v2 = {:?}", v1 == v2);
+
 	// Test: VoxelBuffer
 	{
 		let mut voxel_buffer = VoxelBuffer::new(10, 10, 10);
@@ -57,7 +76,9 @@ fn main() {
 
     for y in 0..height {
         for x in 0..width {
-			rt.set(x as i32, y as i32, Pixel{ r: 1.0, g: 1.0, b: 1.0} );
+			let r = (1.0 + (0.1 * x as f32).sin()) * 0.5;
+			let g = (1.0 + (0.1 * y as f32).cos()) * 0.5;
+			rt.set(x as i32, y as i32, Pixel{ r: r, g: g, b: 0.0} );
         }
     }
 
@@ -66,4 +87,3 @@ fn main() {
 
     println!("Output: {}", FILENAME);
 }
-
