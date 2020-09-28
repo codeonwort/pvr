@@ -31,6 +31,9 @@ use camera::Camera;
 // ----------------------------------------------------------
 // program code
 const FILENAME: &str = "test.png";
+const GAMMA_VALUE: f32 = 2.2;
+const FOV_Y: f32 = 45.0;
+const EXPOSURE: f32 = 1.2;
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 	let out_file = File::create(filepath).unwrap();
@@ -48,13 +51,14 @@ fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 
 fn integrate_emission(vol: &Volume, ray: Ray) -> Vec3 {
 	// #todo: proper step size
-	let step_size: f32 = 1.0;
+	let step_size: f32 = 0.25;
 
 	// Integration bounds
 	let interval = vol.get_intersection(ray);
 	match interval {
 		None => Vec3::new(0.0, 0.0, 0.0),
 		Some((t_start, t_end)) => {
+			//let step_size: f32 = (t_end - t_start) / 20.0;
 			let mut t_current = t_start;
 			let mut T: f32 = 1.0;
 			let mut L: Vec3 = Vec3::new(0.0, 0.0, 0.0);
@@ -78,7 +82,6 @@ fn main() {
     let width: usize = 512;
 	let height: usize = 512;
 	let aspect_ratio = (width as f32) / (height as f32);
-	let fov_y = 45.0;
 	let mut rt: RenderTarget = RenderTarget::new(width, height);
 
 	// Test: VoxelBuffer
@@ -90,12 +93,12 @@ fn main() {
 
 	let camera = Camera::new(
 		Vec3::new(0.0, 0.0, -10.0), Vec3::new(0.0, 0.0, 10.0), Vec3::new(0.0, 1.0, 0.0),
-		fov_y, aspect_ratio);
+		FOV_Y, aspect_ratio);
 
 	let inv_width = 1.0 / (width as f32);
 	let inv_height = 1.0 / (height as f32);
 
-	let vol = ConstantVolume::new(Vec3::new(0.0, 0.0, 0.0), 2.0, Vec3::new(1.0, 0.1, 0.1), 0.5);
+	let vol = ConstantVolume::new(Vec3::new(0.0, 0.0, 0.0), 2.0, Vec3::new(0.7, 0.15, 0.05), 0.7);
 
     for y in 0..height {
         for x in 0..width {
@@ -103,9 +106,14 @@ fn main() {
 			let v = (y as f32) * inv_height;
 
 			let ray = camera.get_ray(u, v);
-			let final_color = integrate_emission(&vol, ray);
+			let mut final_color = integrate_emission(&vol, ray);
 
-			// #todo: tone mapping
+			// tone mapping
+			final_color = Vec3::new(1.0, 1.0, 1.0) - (-final_color * EXPOSURE).exp();
+
+			// gamma correction
+			final_color = final_color.pow(1.0 / GAMMA_VALUE);
+
 			rt.set(x as i32, y as i32, Pixel { r: final_color.x, g: final_color.y, b: final_color.z });
         }
     }

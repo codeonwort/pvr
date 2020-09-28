@@ -46,6 +46,13 @@ impl Vec3 {
         let w = 1.0 / self.length();
         w * self.clone()
     }
+
+    pub fn pow(&self, n: f32) -> Vec3 {
+        Vec3 { x: self.x.powf(n), y: self.y.powf(n), z: self.z.powf(n) }
+    }
+    pub fn exp(&self) -> Vec3 {
+        Vec3 { x: self.x.exp(), y: self.y.exp(), z: self.z.exp() }
+    }
 }
 
 impl Neg for Vec3 {
@@ -143,7 +150,7 @@ impl SubAssign for Vec3 {
     }
 }
 
-impl MulAssign for Vec3 {
+impl MulAssign<Vec3> for Vec3 {
     fn mul_assign(&mut self, other: Self) {
         *self = Self {
             x: self.x * other.x,
@@ -152,13 +159,31 @@ impl MulAssign for Vec3 {
         };
     }
 }
+impl MulAssign<f32> for Vec3 {
+    fn mul_assign(&mut self, other: f32) {
+        *self = Self {
+            x: self.x * other,
+            y: self.y * other,
+            z: self.z * other
+        };
+    }
+}
 
-impl DivAssign for Vec3 {
+impl DivAssign<Vec3> for Vec3 {
     fn div_assign(&mut self, other: Self) {
         *self = Self {
             x: self.x / other.x,
             y: self.y / other.y,
             z: self.z / other.z
+        };
+    }
+}
+impl DivAssign<f32> for Vec3 {
+    fn div_assign(&mut self, other: f32) {
+        *self = Self {
+            x: self.x / other,
+            y: self.y / other,
+            z: self.z / other
         };
     }
 }

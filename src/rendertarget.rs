@@ -1,5 +1,6 @@
 // To layout struct in a way compatible with C/C++, use #[repr(C)] attributes. (Chapter 21)
 
+// #todo: Replace with Vec3?
 #[derive(Copy, Clone, Default)]
 pub struct Pixel {
 	pub r: f32,
