@@ -18,11 +18,26 @@ pub struct Vec3 {
 	pub z: f32
 }
 
+//macro_rules! vec3 {
+//    ($x:f32, $y:f32, $z:f32) => ({
+//        match (&$x, &$y, &$z) {
+//            (x, y, z) => Vec3::new(x, y, z)
+//        }
+//    });
+//}
+
+pub fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
+    Vec3::new(x, y, z)
+}
+
 impl Vec3 {
-    //pub fn new(v: f32) -> Vec3 { Vec3 { x: v, y: v, z: v } } // no overloading, huh :/
+    // Constructors
     pub fn new(x: f32, y: f32, z: f32) -> Vec3 {
         Vec3 { x: x, y: y, z: z }
     }
+    pub fn zero() -> Vec3 { Vec3::new(0.0, 0.0, 0.0) }
+    pub fn one() -> Vec3 { Vec3::new(1.0, 1.0, 1.0) }
+
     pub fn distance(a: Vec3, b: Vec3) -> f32 {
         (a - b).length()
     }
@@ -52,6 +67,12 @@ impl Vec3 {
     }
     pub fn exp(&self) -> Vec3 {
         Vec3 { x: self.x.exp(), y: self.y.exp(), z: self.z.exp() }
+    }
+    pub fn floor(&self) -> Vec3 {
+        Vec3 { x: self.x.floor(), y: self.y.floor(), z: self.z.floor() }
+    }
+    pub fn fract(&self) -> Vec3 {
+        Vec3 { x: self.x.fract(), y: self.y.fract(), z: self.z.fract() }
     }
 }
 

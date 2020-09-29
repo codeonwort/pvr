@@ -1,5 +1,6 @@
 use crate::vec3::Vec3;
 use crate::ray::Ray;
+use crate::noise::*;
 
 pub trait Volume {
     fn emission(&self, p: Vec3) -> Vec3;
@@ -28,7 +29,12 @@ impl ConstantVolume {
 
 impl Volume for ConstantVolume {
     fn emission(&self, p: Vec3) -> Vec3 {
-        if self.contains(p) { self.emission_value } else { Vec3::new(0.0, 0.0, 0.0) }
+        let noise = fBm(p * 3.0, 5, 3.14, 0.7);
+        let sphere_func = (p - self.center).length() / self.radius - 1.0;
+        let filter_width = self.radius;
+        let pyro = pyroclastic(sphere_func, noise, filter_width);
+
+        if self.contains(p) { pyro * self.emission_value } else { Vec3::zero() }
     }
     fn absorption(&self, p: Vec3) -> f32 {
         if self.contains(p) { self.absorption_coeff } else { 0.0 }

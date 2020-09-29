@@ -8,6 +8,7 @@ use std::fs::File;
 // module: voxel and volume
 mod voxel;
 mod volume;
+mod noise;
 use voxel::VoxelBuffer;
 use volume::Volume;
 use volume::ConstantVolume;
@@ -24,7 +25,7 @@ use rendertarget::RenderTarget;
 mod vec3;
 mod ray;
 mod camera;
-use vec3::Vec3;
+use vec3::*;
 use ray::Ray;
 use camera::Camera;
 
@@ -56,12 +57,12 @@ fn integrate_emission(vol: &Volume, ray: Ray) -> Vec3 {
 	// Integration bounds
 	let interval = vol.get_intersection(ray);
 	match interval {
-		None => Vec3::new(0.0, 0.0, 0.0),
+		None => Vec3::zero(),
 		Some((t_start, t_end)) => {
 			//let step_size: f32 = (t_end - t_start) / 20.0;
 			let mut t_current = t_start;
 			let mut T: f32 = 1.0;
-			let mut L: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+			let mut L: Vec3 = Vec3::zero();
 		
 			while t_current < t_end {
 				let p_i: Vec3 = ray.at(t_current);
@@ -92,13 +93,13 @@ fn main() {
 	}
 
 	let camera = Camera::new(
-		Vec3::new(0.0, 0.0, -10.0), Vec3::new(0.0, 0.0, 10.0), Vec3::new(0.0, 1.0, 0.0),
+		vec3(0.0, 0.0, -10.0), vec3(0.0, 0.0, 10.0), vec3(0.0, 1.0, 0.0),
 		FOV_Y, aspect_ratio);
 
 	let inv_width = 1.0 / (width as f32);
 	let inv_height = 1.0 / (height as f32);
 
-	let vol = ConstantVolume::new(Vec3::new(0.0, 0.0, 0.0), 2.0, Vec3::new(0.7, 0.15, 0.05), 0.7);
+	let vol = ConstantVolume::new(vec3(0.0, 0.0, 0.0), 2.0, vec3(0.4, 0.1, 0.1), 0.8);
 
     for y in 0..height {
         for x in 0..width {
@@ -109,7 +110,7 @@ fn main() {
 			let mut final_color = integrate_emission(&vol, ray);
 
 			// tone mapping
-			final_color = Vec3::new(1.0, 1.0, 1.0) - (-final_color * EXPOSURE).exp();
+			final_color = vec3(1.0, 1.0, 1.0) - (-final_color * EXPOSURE).exp();
 
 			// gamma correction
 			final_color = final_color.pow(1.0 / GAMMA_VALUE);
