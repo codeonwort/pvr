@@ -4,7 +4,7 @@ use crate::noise::*;
 
 pub trait Volume {
     fn emission(&self, p: Vec3) -> Vec3;
-    fn absorption(&self, p: Vec3) -> f32;
+    fn absorption(&self, p: Vec3) -> Vec3;
     fn get_intersection(&self, ray: Ray) -> Option<(f32, f32)>; // (t_min, t_max) of the ray
 }
 
@@ -14,11 +14,11 @@ pub struct ConstantVolume {
     radius: f32,
 
     emission_value: Vec3,
-    absorption_coeff: f32
+    absorption_coeff: Vec3
 }
 
 impl ConstantVolume {
-    pub fn new(center: Vec3, radius: f32, emission: Vec3, absorption: f32) -> ConstantVolume {
+    pub fn new(center: Vec3, radius: f32, emission: Vec3, absorption: Vec3) -> ConstantVolume {
         ConstantVolume { center: center, radius: radius, emission_value: emission, absorption_coeff: absorption }
     }
 
@@ -29,15 +29,16 @@ impl ConstantVolume {
 
 impl Volume for ConstantVolume {
     fn emission(&self, p: Vec3) -> Vec3 {
-        let noise = fBm(p * 3.0, 5, 3.14, 0.7);
-        let sphere_func = (p - self.center).length() / self.radius - 1.0;
-        let filter_width = self.radius;
-        let pyro = pyroclastic(sphere_func, noise, filter_width);
-
-        if self.contains(p) { pyro * self.emission_value } else { Vec3::zero() }
+        self.emission_value
+        //let noise = fBm(p * 3.0, 5, 3.14, 0.7);
+        //let sphere_func = (p - self.center).length() / self.radius - 1.0;
+        //let filter_width = self.radius;
+        //let pyro = pyroclastic(sphere_func, noise, filter_width);
+        //
+        //if self.contains(p) { pyro * self.emission_value } else { Vec3::zero() }
     }
-    fn absorption(&self, p: Vec3) -> f32 {
-        if self.contains(p) { self.absorption_coeff } else { 0.0 }
+    fn absorption(&self, p: Vec3) -> Vec3 {
+        if self.contains(p) { self.absorption_coeff } else { Vec3::zero() }
     }
     fn get_intersection(&self, ray: Ray) -> Option<(f32, f32)> {
         let delta = ray.o - self.center;

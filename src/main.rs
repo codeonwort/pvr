@@ -10,7 +10,6 @@ mod voxel;
 mod volume;
 mod noise;
 use voxel::VoxelBuffer;
-use volume::Volume;
 use volume::ConstantVolume;
 
 // ----------------------------------------------------------
@@ -26,8 +25,12 @@ mod vec3;
 mod ray;
 mod camera;
 use vec3::*;
-use ray::Ray;
 use camera::Camera;
+
+// ----------------------------------------------------------
+// module: raymarcher
+mod raymarcher;
+use raymarcher::*;
 
 // ----------------------------------------------------------
 // program code
@@ -50,35 +53,6 @@ fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
     out_file.sync_all().unwrap();
 }
 
-fn integrate_emission(vol: &Volume, ray: Ray) -> Vec3 {
-	// #todo: proper step size
-	let step_size: f32 = 0.25;
-
-	// Integration bounds
-	let interval = vol.get_intersection(ray);
-	match interval {
-		None => Vec3::zero(),
-		Some((t_start, t_end)) => {
-			//let step_size: f32 = (t_end - t_start) / 20.0;
-			let mut t_current = t_start;
-			let mut T: f32 = 1.0;
-			let mut L: Vec3 = Vec3::zero();
-		
-			while t_current < t_end {
-				let p_i: Vec3 = ray.at(t_current);
-				let Le: Vec3 = vol.emission(p_i);
-				let sigma_a: f32 = vol.absorption(p_i);
-				let T_i: f32 = (-sigma_a * step_size).exp();
-				T *= T_i;
-				L = L + T * Le;
-				t_current += step_size;
-			}
-		
-			L
-		}
-	}
-}
-
 fn main() {
     let width: usize = 512;
 	let height: usize = 512;
@@ -99,7 +73,7 @@ fn main() {
 	let inv_width = 1.0 / (width as f32);
 	let inv_height = 1.0 / (height as f32);
 
-	let vol = ConstantVolume::new(vec3(0.0, 0.0, 0.0), 2.0, vec3(0.4, 0.1, 0.1), 0.8);
+	let vol = ConstantVolume::new(vec3(0.0, 0.0, 0.0), 2.0, vec3(0.4, 0.1, 0.1), vec3(0.76, 0.35, 0.95));
 
     for y in 0..height {
         for x in 0..width {
@@ -107,15 +81,17 @@ fn main() {
 			let v = (y as f32) * inv_height;
 
 			let ray = camera.get_ray(u, v);
-			let mut final_color = integrate_emission(&vol, ray);
+			let result = integrate_ray(&vol, ray);
+
+			let mut luminance = result.luminance;
+			//let transmittance = result.transmittance;
 
 			// tone mapping
-			final_color = vec3(1.0, 1.0, 1.0) - (-final_color * EXPOSURE).exp();
-
+			luminance = vec3(1.0, 1.0, 1.0) - (-luminance * EXPOSURE).exp();
 			// gamma correction
-			final_color = final_color.pow(1.0 / GAMMA_VALUE);
+			luminance = luminance.pow(1.0 / GAMMA_VALUE);
 
-			rt.set(x as i32, y as i32, Pixel { r: final_color.x, g: final_color.y, b: final_color.z });
+			rt.set(x as i32, y as i32, Pixel { r: luminance.x, g: luminance.y, b: luminance.z });
         }
     }
 
