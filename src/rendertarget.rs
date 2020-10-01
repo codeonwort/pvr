@@ -1,15 +1,7 @@
-// To layout struct in a way compatible with C/C++, use #[repr(C)] attributes. (Chapter 21)
-
-// #todo: Replace with Vec3?
-#[derive(Copy, Clone, Default)]
-pub struct Pixel {
-	pub r: f32,
-	pub g: f32,
-	pub b: f32
-}
+use crate::vec3::*;
 
 pub struct RenderTarget {
-	pixels: Vec<Pixel>,
+	pixels: Vec<Vec3>,
 	width: usize,
 	height: usize
 }
@@ -17,8 +9,8 @@ pub struct RenderTarget {
 impl RenderTarget {
 
 	pub fn new(width: usize, height: usize) -> RenderTarget {
-		let mut pixels: Vec<Pixel> = Vec::new();
-		let black = Pixel { r: 0.0, g: 0.0, b: 0.0 };
+		let mut pixels: Vec<Vec3> = Vec::new();
+		let black = Vec3::zero();
 		pixels.resize(width * height, black);
 		RenderTarget { pixels: pixels, width: width, height: height }
 	}
@@ -31,10 +23,10 @@ impl RenderTarget {
 		let mut ptr = 0;
 		for y in 0..self.height {
 			for x in 0..self.width {
-				let px: Pixel = self.get(x as i32, y as i32);
-				let r: u8 = (((px.r * 255.0) as u32) & 0xff) as u8;
-				let g: u8 = (((px.g * 255.0) as u32) & 0xff) as u8;
-				let b: u8 = (((px.b * 255.0) as u32) & 0xff) as u8;
+				let px: Vec3 = self.get(x as i32, y as i32);
+				let r: u8 = (((px.x * 255.0) as u32) & 0xff) as u8;
+				let g: u8 = (((px.y * 255.0) as u32) & 0xff) as u8;
+				let b: u8 = (((px.z * 255.0) as u32) & 0xff) as u8;
 				buffer[ptr] = r;
 				buffer[ptr+1] = g;
 				buffer[ptr+2] = b;
@@ -45,17 +37,17 @@ impl RenderTarget {
 		buffer
 	}
 
-	pub fn set(&mut self, x: i32, y:i32, pixel: Pixel) {
+	pub fn set(&mut self, x: i32, y:i32, pixel: Vec3) {
 		let ix = self.index(x, y) as usize;
 		self.pixels[ix] = pixel
 	}
 
 	// Returns black color for out of range
-	pub fn get(&self, x: i32, y:i32) -> Pixel {
+	pub fn get(&self, x: i32, y:i32) -> Vec3 {
 		if self.contains(x, y) {
 			self.pixels[self.index(x, y) as usize]
 		} else {
-			Pixel { r: 0.0, g: 0.0, b: 0.0 }
+			Vec3::zero()
 		}
 	}
 

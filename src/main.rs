@@ -15,7 +15,6 @@ use volume::ConstantVolume;
 // ----------------------------------------------------------
 // module: rendertarget
 mod rendertarget;
-use rendertarget::Pixel;
 use rendertarget::RenderTarget;
 
 // ----------------------------------------------------------
@@ -91,7 +90,7 @@ fn main() {
 			// gamma correction
 			luminance = luminance.pow(1.0 / GAMMA_VALUE);
 
-			rt.set(x as i32, y as i32, Pixel { r: luminance.x, g: luminance.y, b: luminance.z });
+			rt.set(x as i32, y as i32, luminance);
         }
     }
 
