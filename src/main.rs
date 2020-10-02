@@ -5,12 +5,22 @@ use image::ColorType;
 use std::fs::File;
 
 // ----------------------------------------------------------
-// module: voxel and volume
+// (math) module: vec3, aabb
+mod aabb;
+mod vec3;
+use vec3::*;
+use aabb::*;
+
+// ----------------------------------------------------------
+// module: voxel, primitive and volume
 mod voxel;
 mod volume;
 mod noise;
+mod primitive;
 use voxel::VoxelBuffer;
 use volume::ConstantVolume;
+use primitive::primitive::Primitive;
+use primitive::point;
 
 // ----------------------------------------------------------
 // module: rendertarget
@@ -18,12 +28,9 @@ mod rendertarget;
 use rendertarget::RenderTarget;
 
 // ----------------------------------------------------------
-// module: vec3, ray, and camera
-// #todo-module: This is definitely going weird. Cleanup mod imports.
-mod vec3;
+// module: ray, and camera
 mod ray;
 mod camera;
-use vec3::*;
 use camera::Camera;
 
 // ----------------------------------------------------------
@@ -58,17 +65,20 @@ fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 }
 
 fn main() {
+	// ----------------------------------------------------------
+	// Environments (#todo: make configurable)
     let width: usize = 512;
 	let height: usize = 512;
 	let aspect_ratio = (width as f32) / (height as f32);
 	let mut rt: RenderTarget = RenderTarget::new(width, height);
 
-	// Test: VoxelBuffer
-	{
-		let mut voxel_buffer = VoxelBuffer::new(10, 10, 10);
-		voxel_buffer.write(0, 0, 0, 3.14);
-		println!("voxel_buffer[0,0,0] = {}", voxel_buffer.read(0, 0, 0));
-	}
+	// ----------------------------------------------------------
+	// Modeling (#todo: move to modeler)
+	let mut voxel_buffer = VoxelBuffer::new(
+		(128, 128, 128),
+		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
+	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 5.0 };
+	point_prim.rasterize(&mut voxel_buffer);
 
 	let camera = Camera::new(
 		vec3(0.0, 0.0, -10.0), vec3(0.0, 0.0, 10.0), vec3(0.0, 1.0, 0.0),
@@ -83,6 +93,7 @@ fn main() {
 		Box::new(PointLight { position: vec3(5.0, 0.0, 0.0), intensity: vec3(50.0, 50.0, 100.0) })
 	];
 
+	// ----------------------------------------------------------
 	// Rendering (#todo: move to renderer)
     for y in 0..height {
         for x in 0..width {

@@ -35,11 +35,11 @@ pub fn pyroclastic(distance: f32, noise: f32, filter_width: f32) -> f32 {
     clamp(pyro_value, 0.0, 1.0)
 }
 
-pub fn fBm(p: Vec3, octaves: i32, octaveGain: f32, lacunarity: f32) -> f32 {
+pub fn fBm(p: Vec3, octaves: i32, octave_gain: f32, lacunarity: f32) -> f32 {
     let mut p2 = p;
     let mut value = 0.0;
     for i in 0..octaves {
-        value += noise(p2) * octaveGain.powi(i);
+        value += noise(p2) * octave_gain.powi(i);
         p2 *= lacunarity;
     }
 

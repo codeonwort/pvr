@@ -18,16 +18,20 @@ pub struct Vec3 {
 	pub z: f32
 }
 
-//macro_rules! vec3 {
-//    ($x:f32, $y:f32, $z:f32) => ({
-//        match (&$x, &$y, &$z) {
-//            (x, y, z) => Vec3::new(x, y, z)
-//        }
-//    });
-//}
+impl Into<Vec3> for f32 {
+    fn into(self) -> Vec3 {
+        Vec3::new(self, self, self)
+    }
+}
 
 pub fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
     Vec3::new(x, y, z)
+}
+
+pub fn fit<T>(v: T, old_min: T, old_max: T, new_min: T, new_max: T) -> T
+    where T: Add<Output=T> + Sub<Output=T> + Div<Output=T> + Mul<Output=T> + Copy
+{
+    new_min + (new_max - new_min) * (v - old_min) / (old_max - old_min)
 }
 
 impl Vec3 {
