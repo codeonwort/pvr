@@ -32,6 +32,11 @@ mod raymarcher;
 use raymarcher::*;
 
 // ----------------------------------------------------------
+// module: light
+mod light;
+use light::*;
+
+// ----------------------------------------------------------
 // program code
 const FILENAME: &str = "test.png";
 const GAMMA_VALUE: f32 = 2.2;
@@ -72,15 +77,20 @@ fn main() {
 	let inv_width = 1.0 / (width as f32);
 	let inv_height = 1.0 / (height as f32);
 
+	// Test scene (#too: move to Scene)
 	let vol = ConstantVolume::new(vec3(0.0, 0.0, 0.0), 2.0, vec3(0.4, 0.1, 0.1), vec3(0.76, 0.35, 0.95));
+	let lights: Vec<Box<dyn Light>> = vec![
+		Box::new(PointLight { position: vec3(5.0, 0.0, 0.0), intensity: vec3(50.0, 50.0, 100.0) })
+	];
 
+	// Rendering (#todo: move to renderer)
     for y in 0..height {
         for x in 0..width {
 			let u = (x as f32) * inv_width;
 			let v = (y as f32) * inv_height;
-
 			let ray = camera.get_ray(u, v);
-			let result = integrate_ray(&vol, ray);
+
+			let result = integrate_ray(&vol, ray, &lights);
 
 			let mut luminance = result.luminance;
 			//let transmittance = result.transmittance;
