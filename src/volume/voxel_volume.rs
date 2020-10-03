@@ -2,7 +2,6 @@ use crate::volume::volume::*;
 use crate::vec3::*;
 use crate::ray::*;
 use crate::voxel::*;
-use crate::aabb::*;
 
 pub struct VoxelVolume {
     pub buffer: VoxelBuffer, 

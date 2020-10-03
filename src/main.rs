@@ -49,6 +49,7 @@ const FILENAME: &str = "test.png";
 const GAMMA_VALUE: f32 = 2.2;
 const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
+const VOXEL_RESOLUTION: (i32, i32, i32) = (128, 128, 128);
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 	let out_file = File::create(filepath).unwrap();
@@ -74,19 +75,21 @@ fn main() {
 
 	// ----------------------------------------------------------
 	// Modeling (#todo: move to modeler)
+	println!("Rasterizing primitives into voxel buffer...");
+
 	let voxel_buffer = VoxelBuffer::new(
-		(128, 128, 128),
+		VOXEL_RESOLUTION,
 		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
 	let mut voxel_volume = VoxelVolume {
 		buffer: voxel_buffer,
-		emission_value: vec3(0.4, 0.1, 0.1),
-		absorption_coeff: vec3(0.76, 0.35, 0.95)
+		emission_value: vec3(0.4, 0.2, 0.2),
+		absorption_coeff: vec3(0.76, 0.65, 0.95)
 	};
-	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 5.0 };
+	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 8.0 };
 	point_prim.rasterize(voxel_volume.get_buffer());
 
 	let camera = Camera::new(
-		vec3(0.0, 0.0, -30.0), vec3(0.0, 0.0, 10.0), vec3(0.0, 1.0, 0.0),
+		vec3(0.0, 0.0, 30.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0),
 		FOV_Y, aspect_ratio);
 
 	let inv_width = 1.0 / (width as f32);
@@ -96,11 +99,15 @@ fn main() {
 	let constant_volume = ConstantVolume::new(
 		vec3(0.0, 0.0, 0.0), 2.0, vec3(0.4, 0.1, 0.1), vec3(0.76, 0.35, 0.95));
 	let lights: Vec<Box<dyn Light>> = vec![
-		Box::new(PointLight { position: vec3(5.0, 0.0, 0.0), intensity: vec3(20.0, 20.0, 50.0) })
+		Box::new(PointLight { position: vec3(20.0, 5.0, 0.0), intensity: vec3(20.0, 20.0, 50.0) })
 	];
 
 	// ----------------------------------------------------------
 	// Rendering (#todo: move to renderer)
+	println!("Rendering the voxel buffer...");
+
+	let mut progress = 0;
+	let mut progress_prev = 0;
     for y in 0..height {
         for x in 0..width {
 			let u = (x as f32) * inv_width;
@@ -118,10 +125,30 @@ fn main() {
 			luminance = luminance.pow(1.0 / GAMMA_VALUE);
 
 			rt.set(x as i32, y as i32, luminance);
+		}
+		
+		progress = (10.0 * (y as f32) / (height as f32)) as i32;
+		if progress != progress_prev {
+			println!("progress: {} %", progress * 10);
+			progress_prev = progress;
+		}
+	}
+	
+	// noise test
+	/*
+	for y in 0..height {
+        for x in 0..width {
+			let u = (x as f32) * inv_width;
+			let v = (y as f32) * inv_height;
+			let p = 10.0 * vec3(u, v, 0.0);
+			let noise_value = fBm(p, 3, 0.5, 1.92);
+			rt.set(x as i32, y as i32, noise_value.into());
         }
-    }
+	}*/
+	
+	println!("Printing the image to {}", FILENAME);
 
 	print_rendertarget(&rt, FILENAME);
 
-    println!("Output: {}", FILENAME);
+    println!("Done.");
 }
