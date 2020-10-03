@@ -25,7 +25,7 @@ impl VoxelBuffer {
 	}
 
 	pub fn sample(&self, u: f32, v: f32, w: f32) -> Vec3 {
-		if u < 0.0 || v < 0.0 || w < 0.0 {
+		if u < 0.0 || v < 0.0 || w < 0.0 || u >= 1.0 || v >= 1.0 || w >= 1.0 {
 			Vec3::zero()
 		} else {
 			let i = (u * (self.size_x as f32)) as i32;
@@ -39,6 +39,18 @@ impl VoxelBuffer {
 				self.data[ix]
 			}
 		}
+	}
+
+	pub fn sample_by_world_position(&self, p: Vec3) -> Vec3 {
+		let lp = self.world_to_voxel(p) / self.get_sizef();
+		self.sample(lp.x, lp.y, lp.z)
+	}
+
+	pub fn world_to_voxel(&self, p: Vec3) -> Vec3 {
+		fit(p, self.ws_bounds.min, self.ws_bounds.max, Vec3::zero(), self.get_sizef())
+	}
+	pub fn voxel_to_world(&self, p: Vec3) -> Vec3 {
+		fit(p, Vec3::zero(), self.get_sizef(), self.ws_bounds.min, self.ws_bounds.max)
 	}
 
 	pub fn get_size(&self) -> (i32, i32, i32) {

@@ -1,5 +1,5 @@
 use crate::vec3::*;
-use crate::volume::*;
+use crate::volume::volume::*;
 use crate::ray::*;
 use crate::light::*;
 

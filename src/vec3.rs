@@ -10,6 +10,8 @@ use std::ops::SubAssign;
 use std::ops::MulAssign;
 use std::ops::DivAssign;
 use std::cmp::PartialEq;
+use std::ops::Index;
+use std::ops::IndexMut;
 
 #[derive(Copy, Clone, Default, Debug)]
 pub struct Vec3 {
@@ -216,6 +218,35 @@ impl DivAssign<f32> for Vec3 {
 impl PartialEq for Vec3 {
     fn eq(&self, rhs: &Self) -> bool {
         self.x == rhs.x && self.y == rhs.y && self.z == rhs.z
+    }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f32;
+    fn index(&self, index: usize) -> &f32 {
+        if index == 0 {
+            &self.x
+        } else if index == 1 {
+            &self.y
+        } else if index == 2 {
+            &self.z
+        } else {
+            panic!("undefined index")
+        }
+    }
+}
+
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut f32 {
+        if index == 0 {
+            &mut self.x
+        } else if index == 1 {
+            &mut self.y
+        } else if index == 2 {
+            &mut self.z
+        } else {
+            panic!("undefined index")
+        }
     }
 }
 

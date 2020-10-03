@@ -18,9 +18,9 @@ mod volume;
 mod noise;
 mod primitive;
 use voxel::VoxelBuffer;
-use volume::ConstantVolume;
+use volume::constant_volume::ConstantVolume;
+use volume::voxel_volume::*;
 use primitive::primitive::Primitive;
-use primitive::point;
 
 // ----------------------------------------------------------
 // module: rendertarget
@@ -74,23 +74,29 @@ fn main() {
 
 	// ----------------------------------------------------------
 	// Modeling (#todo: move to modeler)
-	let mut voxel_buffer = VoxelBuffer::new(
+	let voxel_buffer = VoxelBuffer::new(
 		(128, 128, 128),
 		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
+	let mut voxel_volume = VoxelVolume {
+		buffer: voxel_buffer,
+		emission_value: vec3(0.4, 0.1, 0.1),
+		absorption_coeff: vec3(0.76, 0.35, 0.95)
+	};
 	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 5.0 };
-	point_prim.rasterize(&mut voxel_buffer);
+	point_prim.rasterize(voxel_volume.get_buffer());
 
 	let camera = Camera::new(
-		vec3(0.0, 0.0, -10.0), vec3(0.0, 0.0, 10.0), vec3(0.0, 1.0, 0.0),
+		vec3(0.0, 0.0, -30.0), vec3(0.0, 0.0, 10.0), vec3(0.0, 1.0, 0.0),
 		FOV_Y, aspect_ratio);
 
 	let inv_width = 1.0 / (width as f32);
 	let inv_height = 1.0 / (height as f32);
 
 	// Test scene (#too: move to Scene)
-	let vol = ConstantVolume::new(vec3(0.0, 0.0, 0.0), 2.0, vec3(0.4, 0.1, 0.1), vec3(0.76, 0.35, 0.95));
+	let constant_volume = ConstantVolume::new(
+		vec3(0.0, 0.0, 0.0), 2.0, vec3(0.4, 0.1, 0.1), vec3(0.76, 0.35, 0.95));
 	let lights: Vec<Box<dyn Light>> = vec![
-		Box::new(PointLight { position: vec3(5.0, 0.0, 0.0), intensity: vec3(50.0, 50.0, 100.0) })
+		Box::new(PointLight { position: vec3(5.0, 0.0, 0.0), intensity: vec3(20.0, 20.0, 50.0) })
 	];
 
 	// ----------------------------------------------------------
@@ -101,7 +107,7 @@ fn main() {
 			let v = (y as f32) * inv_height;
 			let ray = camera.get_ray(u, v);
 
-			let result = integrate_ray(&vol, ray, &lights);
+			let result = integrate_ray(&voxel_volume, ray, &lights);
 
 			let mut luminance = result.luminance;
 			//let transmittance = result.transmittance;
