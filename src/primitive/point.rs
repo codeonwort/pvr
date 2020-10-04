@@ -39,10 +39,12 @@ impl Primitive for Point {
                     // pyroclastic test
                     let ws_pos = voxel_buffer.voxel_to_world(vs_pos);
                     let ls_pos = (ws_pos - self.center) / self.radius;
-                    let noise = fBm(5.0 * ls_pos, 4, 0.5, 2.0);
+                    //let noise = fBm(2.0 * ls_pos, 4, 0.5, 2.0);
+                    let noise = fBm(8.0 * ls_pos);
                     
-                    let sphere_func = ls_pos.length() - 1.0;
-                    let filter_width = ws_bounds.size().length() / self.radius;
+                    //let sphere_func = ls_pos.length() - 1.0;
+                    let sphere_func = ls_pos.length() + 0.9;
+                    let filter_width = 2.0;//ws_bounds.size().length() / self.radius;
                     let pyro = pyroclastic(sphere_func, noise, filter_width);
 
                     voxel_buffer.write(x, y, z, density * pyro);

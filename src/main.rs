@@ -21,6 +21,7 @@ use voxel::VoxelBuffer;
 use volume::constant_volume::ConstantVolume;
 use volume::voxel_volume::*;
 use primitive::primitive::Primitive;
+use noise::*;
 
 // ----------------------------------------------------------
 // module: rendertarget
@@ -49,7 +50,7 @@ const FILENAME: &str = "test.png";
 const GAMMA_VALUE: f32 = 2.2;
 const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
-const VOXEL_RESOLUTION: (i32, i32, i32) = (256, 256, 256);
+const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 	let out_file = File::create(filepath).unwrap();
@@ -82,10 +83,11 @@ fn main() {
 		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
 	let mut voxel_volume = VoxelVolume {
 		buffer: voxel_buffer,
-		emission_value: vec3(1.0, 0.2, 0.3),
-		absorption_coeff: vec3(0.85, 0.75, 0.95)
+		emission_value: vec3(0.8, 0.8, 0.8),
+		absorption_coeff: vec3(0.20, 0.70, 0.40)
 	};
-	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 8.0 };
+	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 12.0 };
+
 	point_prim.rasterize(voxel_volume.get_buffer());
 
 	let camera = Camera::new(
@@ -99,13 +101,14 @@ fn main() {
 	let constant_volume = ConstantVolume::new(
 		vec3(0.0, 0.0, 0.0), 8.0, vec3(0.8, 0.1, 0.2), vec3(0.76, 0.65, 0.95));
 	let lights: Vec<Box<dyn Light>> = vec![
-		Box::new(PointLight { position: vec3(30.0, 0.0, 0.0), intensity: vec3(500.0, 500.0, 500.0) })
+		Box::new(PointLight { position: vec3(70.0, 0.0, 20.0), intensity: vec3(1000.0, 1000.0, 1000.0) })
 	];
 
 	// ----------------------------------------------------------
 	// Rendering (#todo: move to renderer)
 	println!("Rendering the voxel buffer...");
 
+	///*
 	let mut progress = 0;
 	let mut progress_prev = 0;
     for y in 0..height {
@@ -133,17 +136,21 @@ fn main() {
 			progress_prev = progress;
 		}
 	}
+	//*/
 	
 	// noise test
 	/*
+	let z: f32 = 0.0;
 	for y in 0..height {
         for x in 0..width {
-			let u = (x as f32) * inv_width;
-			let v = (y as f32) * inv_height;
-			let p = 20.0 * vec3(u, v, 10.0);
-			let noise = fBm(p, 5, 0.5, 2.0);
+			let u = 2.0 * (x as f32) * inv_width - 1.0;
+			let v = 2.0 * (y as f32) * inv_height - 1.0;
+			let uv_len = (1.0_f32 - z * z).sqrt();
+			let p = vec3(uv_len * u, uv_len * v, z);
+			
+			let noise = fBm(p * 4.0);
 
-			let sphere_func = 2.0 * vec3(u - 0.5, v - 0.5, 0.0).length() - 1.0;
+			let sphere_func = p.length() - 1.0;
 			let filter_width = 2.0;
 			let pyro = pyroclastic(sphere_func, noise, filter_width);
 

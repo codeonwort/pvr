@@ -42,7 +42,11 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 				{
 					let step_L = 1.0;
 					let mut t_L = 0.0;
-					let t_L_end = (light_sample.position - p_i).length();
+
+					let mut t_L_end = (light_sample.position - p_i).length();
+					if let Some((_, t_L_end2)) = vol.get_intersection(Ray::new(p_i, wi)) {
+						t_L_end = if t_L_end2 < t_L_end { t_L_end2 } else { t_L_end };
+					}
 
 					while t_L < t_L_end {
 						let p_L = p_i + wi * t_L;

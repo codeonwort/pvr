@@ -86,6 +86,9 @@ impl Vec3 {
     pub fn fract(&self) -> Vec3 {
         Vec3 { x: self.x.fract(), y: self.y.fract(), z: self.z.fract() }
     }
+    pub fn fract_glsl(&self) -> Vec3 {
+        *self - self.floor()
+    }
 }
 
 impl Neg for Vec3 {
