@@ -23,7 +23,7 @@ impl ConstantVolume {
 
 impl Volume for ConstantVolume {
     fn emission(&self, p: Vec3) -> Vec3 {
-        self.emission_value
+        if self.contains(p) { self.emission_value } else { Vec3::zero() }
     }
     fn absorption(&self, p: Vec3) -> Vec3 {
         if self.contains(p) { self.absorption_coeff } else { Vec3::zero() }

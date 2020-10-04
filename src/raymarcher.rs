@@ -35,18 +35,17 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 			let mut L_sc = Vec3::zero(); // luminance by scattering
 			for light in lights {
 				let light_sample = light.sample(p_i, ray.d);
-				let wi = (p_i - light_sample.position).normalize();
+				let wi = (light_sample.position - p_i).normalize();
 
 				// Transmittance between current sampling point and light source
 				let mut T_L: Vec3 = Vec3::one();
-				/* Lighting is incorrect and this only increases rendering time
 				{
 					let step_L = 1.0;
 					let mut t_L = 0.0;
 					let t_L_end = (light_sample.position - p_i).length();
 
 					while t_L < t_L_end {
-						let p_L = p_i - wi * t_L;
+						let p_L = p_i + wi * t_L;
 						let sigma_a_L = vol.absorption(p_L);
 
 						T_L *= (-sigma_a_L * step_L).exp();
@@ -57,7 +56,6 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 						}
 					}
 				}
-				*/
 
 				// Scattering probability
 				let sc_prob = vol.phase_function(wi, ray.d);

@@ -1,6 +1,6 @@
 // ----------------------------------------------------------
 // standard or 3rd party crates
-use image::png::PNGEncoder;
+use image::png::PngEncoder;
 use image::ColorType;
 use std::fs::File;
 
@@ -53,7 +53,7 @@ const VOXEL_RESOLUTION: (i32, i32, i32) = (256, 256, 256);
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 	let out_file = File::create(filepath).unwrap();
-	let encoder = PNGEncoder::new(&out_file);
+	let encoder = PngEncoder::new(&out_file);
 
 	let buffer: Vec<u8> = rendertarget.generate_ldr_buffer();
 	let width: u32 = rendertarget.get_width() as u32;
@@ -83,7 +83,7 @@ fn main() {
 	let mut voxel_volume = VoxelVolume {
 		buffer: voxel_buffer,
 		emission_value: vec3(1.0, 0.2, 0.3),
-		absorption_coeff: vec3(0.91, 0.85, 0.75)
+		absorption_coeff: vec3(0.85, 0.75, 0.95)
 	};
 	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 8.0 };
 	point_prim.rasterize(voxel_volume.get_buffer());
@@ -97,9 +97,9 @@ fn main() {
 
 	// Test scene (#too: move to Scene)
 	let constant_volume = ConstantVolume::new(
-		vec3(0.0, 0.0, 0.0), 2.0, vec3(0.4, 0.1, 0.1), vec3(0.76, 0.35, 0.95));
+		vec3(0.0, 0.0, 0.0), 8.0, vec3(0.8, 0.1, 0.2), vec3(0.76, 0.65, 0.95));
 	let lights: Vec<Box<dyn Light>> = vec![
-		Box::new(PointLight { position: vec3(25.0, 5.0, 0.0), intensity: vec3(500.0, 500.0, 500.0) })
+		Box::new(PointLight { position: vec3(30.0, 0.0, 0.0), intensity: vec3(500.0, 500.0, 500.0) })
 	];
 
 	// ----------------------------------------------------------

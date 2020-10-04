@@ -17,8 +17,14 @@ pub struct PointLight {
 
 impl Light for PointLight {
     fn sample(&self, ray_position: Vec3, ray_direction: Vec3) -> LightSample {
-        let falloff = 1.0 / (ray_position - self.position).length_sq();
+        let len_sq = (ray_position - self.position).length_sq();
+
+        if len_sq < 1.0 {
+            LightSample { luminance: self.intensity, position: self.position }
+        } else {
+            let falloff = 1.0 / len_sq;
         
-        LightSample { luminance: self.intensity * falloff, position: self.position }
+            LightSample { luminance: self.intensity * falloff, position: self.position }
+        }
     }
 }
