@@ -9,7 +9,6 @@ fn hash(p: f32) -> f32 {
     p.fract()
 }
 //fn hash(n: f32) -> f32 { n.sin().fract() * (1e4 as f32) }
-fn mix(x: f32, y: f32, a: f32) -> f32 { (x * (1.0 - a)) + (y * a) }
 pub fn clamp(x: f32, x_min: f32, x_max : f32) -> f32 {
     if x < x_min {
         x_min
@@ -27,10 +26,10 @@ pub fn noise(x: Vec3) -> f32 {
     let n = i & step;
     
 	let u = f * f * (vec3(3.0, 3.0, 3.0) - 2.0 * f);
-	return mix(mix(mix( hash(n + (step & vec3(0.0, 0.0, 0.0))), hash(n + (step & vec3(1.0, 0.0, 0.0))), u.x),
-                   mix( hash(n + (step & vec3(0.0, 1.0, 0.0))), hash(n + (step & vec3(1.0, 1.0, 0.0))), u.x), u.y),
-               mix(mix( hash(n + (step & vec3(0.0, 0.0, 1.0))), hash(n + (step & vec3(1.0, 0.0, 1.0))), u.x),
-                   mix( hash(n + (step & vec3(0.0, 1.0, 1.0))), hash(n + (step & vec3(1.0, 1.0, 1.0))), u.x), u.y), u.z);
+	return lerp(lerp(lerp( hash(n + (step & vec3(0.0, 0.0, 0.0))), hash(n + (step & vec3(1.0, 0.0, 0.0))), u.x),
+                   lerp( hash(n + (step & vec3(0.0, 1.0, 0.0))), hash(n + (step & vec3(1.0, 1.0, 0.0))), u.x), u.y),
+               lerp(lerp( hash(n + (step & vec3(0.0, 0.0, 1.0))), hash(n + (step & vec3(1.0, 0.0, 1.0))), u.x),
+                   lerp( hash(n + (step & vec3(0.0, 1.0, 1.0))), hash(n + (step & vec3(1.0, 1.0, 1.0))), u.x), u.y), u.z);
 }
 
 pub fn pyroclastic(distance: f32, noise: f32, filter_width: f32) -> f32 {

@@ -28,7 +28,11 @@ impl Volume for VoxelVolume {
         Vec3::one()
     }
     fn phase_function(&self, wi: Vec3, wo: Vec3) -> f32 {
-        ISOMORPHIC_PHASE_FN
+        let t = wi & wo;
+        let g = 0.76;
+
+        ISOMORPHIC_PHASE_FN * (1.0 - g * g) /
+            (1.0 + g * g - 2.0 * g * t).powf(1.5)
     }
     fn get_intersection(&self, ray: Ray) -> Option<(f32, f32)> {
         self.buffer.get_ws_bounds().intersect(ray)

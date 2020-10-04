@@ -36,6 +36,12 @@ pub fn fit<T>(v: T, old_min: T, old_max: T, new_min: T, new_max: T) -> T
     new_min + (new_max - new_min) * (v - old_min) / (old_max - old_min)
 }
 
+pub fn lerp<T>(x: T, y: T, a: f32) -> T
+    where T: Add<Output=T> + Mul<f32, Output=T>
+{
+    x * (1.0 - a) + (y * a)
+}
+
 impl Vec3 {
     // Constructors
     pub fn new(x: f32, y: f32, z: f32) -> Vec3 {

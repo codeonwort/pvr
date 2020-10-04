@@ -24,13 +24,13 @@ impl VoxelBuffer {
 		}
 	}
 
-	pub fn sample(&self, u: f32, v: f32, w: f32) -> Vec3 {
+	pub fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> Vec3 {
 		if u < 0.0 || v < 0.0 || w < 0.0 || u >= 1.0 || v >= 1.0 || w >= 1.0 {
 			Vec3::zero()
 		} else {
-			let i = (u * (self.size_x as f32)) as i32;
-			let j = (v * (self.size_y as f32)) as i32;
-			let k = (w * (self.size_z as f32)) as i32;
+			let i = (0.5 + u * (self.size_x as f32)) as i32;
+			let j = (0.5 + v * (self.size_y as f32)) as i32;
+			let k = (0.5 + w * (self.size_z as f32)) as i32;
 			let ix = self.index(i, j, k);
 
 			if ix >= self.data.len() {
@@ -41,9 +41,42 @@ impl VoxelBuffer {
 		}
 	}
 
+	fn sample_by_voxel_position(&self, p: Vec3) -> Vec3 {
+		let vp = p + vec3(0.5, 0.5, 0.5);
+		let (x, y, z) = (vp.x as i32, vp.y as i32, vp.z as i32);
+
+		if x < 0 || y < 0 || z < 0 || x >= self.size_x || y >= self.size_y || z >= self.size_z {
+			Vec3::zero()
+		} else {
+			self.read(x, y, z)
+		}
+	}
+
+	// nearest point
+	//pub fn sample_by_world_position(&self, p: Vec3) -> Vec3 {
+	//	let lp = self.world_to_voxel(p) / self.get_sizef();
+	//	self.sample_by_local_position(lp.x, lp.y, lp.z)
+	//}
+
+	// linear interpolation
 	pub fn sample_by_world_position(&self, p: Vec3) -> Vec3 {
-		let lp = self.world_to_voxel(p) / self.get_sizef();
-		self.sample(lp.x, lp.y, lp.z)
+		let vp = self.world_to_voxel(p);
+		let f = (vp - vec3(0.5, 0.5, 0.5)).floor();
+		let a = vp - vec3(0.5, 0.5, 0.5) - f;
+
+		let v000 = self.sample_by_voxel_position(f);
+		let v001 = self.sample_by_voxel_position(f + vec3(0.0, 0.0, 1.0));
+		let v010 = self.sample_by_voxel_position(f + vec3(0.0, 1.0, 0.0));
+		let v011 = self.sample_by_voxel_position(f + vec3(0.0, 1.0, 1.0));
+		let v100 = self.sample_by_voxel_position(f + vec3(1.0, 0.0, 0.0));
+		let v101 = self.sample_by_voxel_position(f + vec3(1.0, 0.0, 1.0));
+		let v110 = self.sample_by_voxel_position(f + vec3(1.0, 1.0, 0.0));
+		let v111 = self.sample_by_voxel_position(f + vec3(1.0, 1.0, 1.0));
+
+		let front = lerp(lerp(v000, v100, a.x), lerp(v010, v110, a.x), a.y);
+		let back = lerp(lerp(v001, v101, a.x), lerp(v011, v111, a.x), a.y);
+
+		lerp(front, back, a.z)
 	}
 
 	pub fn world_to_voxel(&self, p: Vec3) -> Vec3 {
