@@ -116,7 +116,10 @@ fn main() {
 		emission_value: vec3(0.0, 0.0, 0.0),
 		absorption_coeff: vec3(0.75, 0.92, 0.72)
 	};
-	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 12.0 };
+	let point_prim = primitive::pyroclastic_point::PyroclasticPoint {
+		center: vec3(0.0, 0.0, 0.0),
+		radius: 12.0
+	};
 	point_prim.rasterize(voxel_volume.get_buffer());
 
 	// Test scene (#todo: CompositeVolume)
