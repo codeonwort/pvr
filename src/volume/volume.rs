@@ -1,12 +1,14 @@
 use crate::vec3::Vec3;
 use crate::ray::Ray;
 
+use std::marker::Sync;
+
 // #todo: Support various phase functions
 //pub type PhaseFunction = fn(wi: Vec3, wo: Vec3) -> f32;
 
 pub const ISOMORPHIC_PHASE_FN: f32 = 1.0 / (4.0 * std::f32::consts::PI);
 
-pub trait Volume {
+pub trait Volume : Sync {
     // coefficients
     fn emission(&self, p: Vec3) -> Vec3;
     fn absorption(&self, p: Vec3) -> Vec3;
