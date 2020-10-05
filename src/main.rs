@@ -37,7 +37,6 @@ use camera::Camera;
 // ----------------------------------------------------------
 // module: raymarcher
 mod raymarcher;
-use raymarcher::*;
 
 // ----------------------------------------------------------
 // module: light
@@ -45,8 +44,10 @@ mod light;
 use light::*;
 
 // ----------------------------------------------------------
-// module: renderer
+// module: scene, renderer
+mod scene;
 mod renderer;
+use scene::*;
 use renderer::*;
 
 // ----------------------------------------------------------
@@ -116,19 +117,24 @@ fn main() {
 		absorption_coeff: vec3(0.75, 0.92, 0.92)
 	};
 	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 12.0 };
-
 	point_prim.rasterize(voxel_volume.get_buffer());
+
+	// Test scene (#todo: CompositeVolume)
+	let constant_volume = ConstantVolume::new(
+		vec3(0.0, 0.0, 0.0), 8.0, vec3(0.8, 0.1, 0.2), vec3(0.76, 0.65, 0.95));
+	let scene = Scene {
+		volume: Box::new(voxel_volume),
+		lights: vec![
+			Box::new(PointLight {
+				position: vec3(10.0, 0.0, 70.0),
+				intensity: vec3(1000.0, 1000.0, 1000.0)
+			})
+		]
+	};
 
 	let camera = Camera::new(
 		vec3(0.0, 0.0, 30.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0),
 		FOV_Y, aspect_ratio);
-
-	// Test scene (#too: move to Scene)
-	let constant_volume = ConstantVolume::new(
-		vec3(0.0, 0.0, 0.0), 8.0, vec3(0.8, 0.1, 0.2), vec3(0.76, 0.65, 0.95));
-	let lights: Vec<Box<dyn Light>> = vec![
-		Box::new(PointLight { position: vec3(10.0, 0.0, 70.0), intensity: vec3(1000.0, 1000.0, 1000.0) })
-	];
 
 	// ----------------------------------------------------------
 	// Rendering
@@ -139,7 +145,7 @@ fn main() {
 		gamma: GAMMA_VALUE
 	};
 	let mut renderer = Renderer::new(render_settings, &mut rt);
-	renderer.render(&camera, &voxel_volume, &lights);
+	renderer.render(&camera, &scene);
 
 	// Comment out rasterization and rendering to test noise
 	//noise_test(&mut rt);

@@ -2,11 +2,10 @@ use crate::vec3::*;
 use crate::rendertarget::*;
 use crate::raymarcher::*;
 use crate::camera::*;
-use crate::volume::volume::*;
-use crate::light::*;
+use crate::scene::Scene;
 
-use std::sync::*;
 use std::ops::Deref;
+use std::sync::*;
 
 use rayon::prelude::*;
 
@@ -55,7 +54,7 @@ impl Renderer<'_> {
         Renderer { settings: settings, render_target: render_target }
     }
 
-    pub fn render(&mut self, camera: &Camera, volume: &dyn Volume, lights: &[Box<dyn Light>]) {
+    pub fn render(&mut self, camera: &Camera, scene: &Scene) {
         let width = self.render_target.get_width();
         let height = self.render_target.get_height();
         let inv_width = 1.0 / (width as f32);
@@ -97,7 +96,7 @@ impl Renderer<'_> {
                     let v = (y as f32) * inv_height;
                     let ray = camera.get_ray(u, v);
 
-                    let result = integrate_ray(volume, ray, &lights);
+                    let result = integrate_ray(scene.volume.deref(), ray, &scene.lights);
                     let mut luminance = result.luminance;
                     //let transmittance = result.transmittance;
                     
