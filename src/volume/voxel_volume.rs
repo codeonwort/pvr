@@ -25,12 +25,11 @@ impl Volume for VoxelVolume {
         self.absorption_coeff * self.buffer.sample_by_world_position(p)
     }
     fn scattering(&self, p: Vec3) -> Vec3 {
-        Vec3::one()
+        Vec3::one() - self.buffer.sample_by_world_position(p)
     }
     fn phase_function(&self, wi: Vec3, wo: Vec3) -> f32 {
         let t = wi & wo;
         let g = 0.76;
-
         ISOMORPHIC_PHASE_FN * (1.0 - g * g) /
             (1.0 + g * g - 2.0 * g * t).powf(1.5)
     }

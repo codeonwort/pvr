@@ -33,6 +33,7 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 			let sigma_s: Vec3 = vol.scattering(p_i);
 
 			let mut L_sc = Vec3::zero(); // luminance by scattering
+			
 			for light in lights {
 				let light_sample = light.sample(p_i, ray.d);
 				let wi = (light_sample.position - p_i).normalize();
@@ -64,9 +65,10 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 				// Scattering probability
 				let sc_prob = vol.phase_function(wi, ray.d);
 
+				// #todo: L_sc contributes almost nothing. (sc_prob is too small)
 				L_sc += sigma_s * sc_prob * light_sample.luminance * T_L;
 			}
-
+			
 			let T_i: Vec3 = (-sigma_a * step_size).exp();
 
 			T *= T_i;

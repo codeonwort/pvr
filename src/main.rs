@@ -45,12 +45,20 @@ mod light;
 use light::*;
 
 // ----------------------------------------------------------
+// module: renderer
+mod renderer;
+use renderer::*;
+
+// ----------------------------------------------------------
 // program code
+const IMAGE_WIDTH: usize = 512;
+const IMAGE_HEIGHT: usize = 512;
 const FILENAME: &str = "test.png";
+
 const GAMMA_VALUE: f32 = 2.2;
 const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
-const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
+const VOXEL_RESOLUTION: (i32, i32, i32) = (256, 256, 256);
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 	let out_file = File::create(filepath).unwrap();
@@ -66,80 +74,12 @@ fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
     out_file.sync_all().unwrap();
 }
 
-fn main() {
-	// ----------------------------------------------------------
-	// Environments (#todo: make configurable)
-    let width: usize = 512;
-	let height: usize = 512;
-	let aspect_ratio = (width as f32) / (height as f32);
-	let mut rt: RenderTarget = RenderTarget::new(width, height);
-
-	// ----------------------------------------------------------
-	// Modeling (#todo: move to modeler)
-	println!("Rasterizing primitives into voxel buffer...");
-
-	let voxel_buffer = VoxelBuffer::new(
-		VOXEL_RESOLUTION,
-		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
-	let mut voxel_volume = VoxelVolume {
-		buffer: voxel_buffer,
-		emission_value: vec3(0.8, 0.8, 0.8),
-		absorption_coeff: vec3(0.20, 0.70, 0.40)
-	};
-	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 12.0 };
-
-	point_prim.rasterize(voxel_volume.get_buffer());
-
-	let camera = Camera::new(
-		vec3(0.0, 0.0, 30.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0),
-		FOV_Y, aspect_ratio);
-
+fn noise_test(rt: &mut RenderTarget) {
+	let width = rt.get_width();
+	let height = rt.get_height();
 	let inv_width = 1.0 / (width as f32);
 	let inv_height = 1.0 / (height as f32);
 
-	// Test scene (#too: move to Scene)
-	let constant_volume = ConstantVolume::new(
-		vec3(0.0, 0.0, 0.0), 8.0, vec3(0.8, 0.1, 0.2), vec3(0.76, 0.65, 0.95));
-	let lights: Vec<Box<dyn Light>> = vec![
-		Box::new(PointLight { position: vec3(70.0, 0.0, 20.0), intensity: vec3(1000.0, 1000.0, 1000.0) })
-	];
-
-	// ----------------------------------------------------------
-	// Rendering (#todo: move to renderer)
-	println!("Rendering the voxel buffer...");
-
-	///*
-	let mut progress = 0;
-	let mut progress_prev = 0;
-    for y in 0..height {
-        for x in 0..width {
-			let u = (x as f32) * inv_width;
-			let v = (y as f32) * inv_height;
-			let ray = camera.get_ray(u, v);
-
-			let result = integrate_ray(&voxel_volume, ray, &lights);
-			let mut luminance = result.luminance;
-			//let transmittance = result.transmittance;
-
-			// tone mapping
-			luminance = vec3(1.0, 1.0, 1.0) - (-luminance * EXPOSURE).exp();
-
-			// gamma correction
-			luminance = luminance.pow(1.0 / GAMMA_VALUE);
-
-			rt.set(x as i32, y as i32, luminance);
-		}
-		
-		progress = (10.0 * (y as f32) / (height as f32)) as i32;
-		if progress != progress_prev {
-			println!("progress: {} %", progress * 10);
-			progress_prev = progress;
-		}
-	}
-	//*/
-	
-	// noise test
-	/*
 	let z: f32 = 0.0;
 	for y in 0..height {
         for x in 0..width {
@@ -157,9 +97,54 @@ fn main() {
 			rt.set(x as i32, y as i32, pyro.into());
 		}
 	}
-	*/
+}
+
+fn main() {
+	let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
+	let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
+
+	// ----------------------------------------------------------
+	// Modeling (#todo: move to modeler)
+	println!("> Rasterizing primitives into voxel buffer...");
+
+	let voxel_buffer = VoxelBuffer::new(
+		VOXEL_RESOLUTION,
+		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
+	let mut voxel_volume = VoxelVolume {
+		buffer: voxel_buffer,
+		emission_value: vec3(0.8, 0.8, 0.8),
+		absorption_coeff: vec3(0.75, 0.92, 0.92)
+	};
+	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 12.0 };
+
+	point_prim.rasterize(voxel_volume.get_buffer());
+
+	let camera = Camera::new(
+		vec3(0.0, 0.0, 30.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0),
+		FOV_Y, aspect_ratio);
+
+	// Test scene (#too: move to Scene)
+	let constant_volume = ConstantVolume::new(
+		vec3(0.0, 0.0, 0.0), 8.0, vec3(0.8, 0.1, 0.2), vec3(0.76, 0.65, 0.95));
+	let lights: Vec<Box<dyn Light>> = vec![
+		Box::new(PointLight { position: vec3(10.0, 0.0, 70.0), intensity: vec3(1000.0, 1000.0, 1000.0) })
+	];
+
+	// ----------------------------------------------------------
+	// Rendering
+	println!("> Rendering the voxel buffer...");
+
+	let render_settings = RenderSettings {
+		exposure: EXPOSURE,
+		gamma: GAMMA_VALUE
+	};
+	let mut renderer = Renderer::new(render_settings, &mut rt);
+	renderer.render(&camera, &voxel_volume, &lights);
+
+	// Comment out rasterization and rendering to test noise
+	//noise_test(&mut rt);
 	
-	println!("Printing the image to {}", FILENAME);
+	println!("> Printing the image to {}", FILENAME);
 
 	print_rendertarget(&rt, FILENAME);
 
