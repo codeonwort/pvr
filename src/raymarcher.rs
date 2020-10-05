@@ -63,7 +63,7 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 				}
 
 				// Scattering probability
-				let sc_prob = vol.phase_function(wi, ray.d);
+				let sc_prob = vol.phase_function(-wi, ray.d);
 
 				// #todo: L_sc contributes almost nothing. (sc_prob is too small)
 				L_sc += sigma_s * sc_prob * light_sample.luminance * T_L;

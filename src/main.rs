@@ -59,7 +59,7 @@ const FILENAME: &str = "test.png";
 const GAMMA_VALUE: f32 = 2.2;
 const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
-const VOXEL_RESOLUTION: (i32, i32, i32) = (256, 256, 256);
+const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 	let out_file = File::create(filepath).unwrap();
@@ -113,8 +113,8 @@ fn main() {
 		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
 	let mut voxel_volume = VoxelVolume {
 		buffer: voxel_buffer,
-		emission_value: vec3(0.8, 0.8, 0.8),
-		absorption_coeff: vec3(0.75, 0.92, 0.92)
+		emission_value: vec3(0.0, 0.0, 0.0),
+		absorption_coeff: vec3(0.75, 0.92, 0.72)
 	};
 	let point_prim = primitive::point::Point { center: vec3(0.0, 0.0, 0.0), radius: 12.0 };
 	point_prim.rasterize(voxel_volume.get_buffer());
@@ -126,8 +126,12 @@ fn main() {
 		volume: Box::new(voxel_volume),
 		lights: vec![
 			Box::new(PointLight {
-				position: vec3(10.0, 0.0, 70.0),
-				intensity: vec3(1000.0, 1000.0, 1000.0)
+				position: vec3(80.0, -20.0, 20.0),
+				intensity: 5.0 * vec3(0.0, 0.0, 10000.0)
+			}),
+			Box::new(PointLight {
+				position: vec3(-50.0, 20.0, -10.0),
+				intensity: 5.0 * vec3(10000.0, 0.0, 0.0)
 			})
 		]
 	};

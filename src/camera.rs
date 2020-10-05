@@ -35,10 +35,11 @@ impl Camera {
     }
 
     pub fn get_ray(&self, s: f32, t: f32) -> Ray {
-        Ray::new(self.position,
-            self.top_left
+        let dir = self.top_left
             + s * self.horizontal
             + (1.0 - t) * self.vertical
-            - self.position)
+            - self.position;
+        
+        Ray::new(self.position, dir.normalize())
     }
 }
