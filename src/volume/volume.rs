@@ -13,9 +13,9 @@ pub trait Volume : Sync {
     fn emission(&self, p: Vec3) -> Vec3;
     fn absorption(&self, p: Vec3) -> Vec3;
     fn scattering(&self, p: Vec3) -> Vec3;
+    fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32;
 
-    fn phase_function(&self, wi: Vec3, wo: Vec3) -> f32;
-    fn get_intersection(&self, ray: Ray) -> Option<(f32, f32)>; // (t_min, t_max) of the ray
+    fn get_intersection(&self, ray: Ray) -> Vec<(f32, f32)>; // (t_min, t_max) of the ray
 }
 
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection

@@ -16,12 +16,12 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 	let step_size: f32 = 1.0;
 
 	// Integration bounds
-	let interval = vol.get_intersection(ray);
+	let intervals = vol.get_intersection(ray);
 	
 	let mut T: Vec3 = Vec3::one(); // total transmittance
 	let mut L: Vec3 = Vec3::zero(); // total luminance
 
-	if let Some((t_start, t_end)) = interval {
+	for (t_start, t_end) in intervals {
 		let mut t_current = t_start;
 	
 		while t_current < t_end {
@@ -45,7 +45,7 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 					let mut t_L = 0.0;
 
 					let mut t_L_end = (light_sample.position - p_i).length();
-					if let Some((_, t_L_end2)) = vol.get_intersection(Ray::new(p_i, wi)) {
+					for (_, t_L_end2) in vol.get_intersection(Ray::new(p_i, wi)) {
 						t_L_end = if t_L_end2 < t_L_end { t_L_end2 } else { t_L_end };
 					}
 
@@ -63,7 +63,7 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 				}
 
 				// Scattering probability
-				let sc_prob = vol.phase_function(-wi, ray.d);
+				let sc_prob = vol.phase_function(p_i, -wi, ray.d);
 
 				// #todo: L_sc contributes almost nothing. (sc_prob is too small)
 				L_sc += sigma_s * sc_prob * light_sample.luminance * T_L;

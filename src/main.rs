@@ -12,14 +12,19 @@ use vec3::*;
 use aabb::*;
 
 // ----------------------------------------------------------
-// module: voxel, primitive and volume
-mod voxel;
+// module: volume
 mod volume;
+use volume::voxel::*;
+use volume::constant::ConstantVolume;
+use volume::composite::CompositeVolume;
+
+// ----------------------------------------------------------
+// module: voxel, primitive
+mod voxel;
 mod noise;
 mod primitive;
 use voxel::VoxelBuffer;
-use volume::constant_volume::ConstantVolume;
-use volume::voxel_volume::*;
+
 use primitive::primitive::Primitive;
 use noise::*;
 
@@ -116,17 +121,20 @@ fn main() {
 		emission_value: vec3(0.0, 0.0, 0.0),
 		absorption_coeff: vec3(0.75, 0.92, 0.72)
 	};
+
 	let point_prim = primitive::pyroclastic_point::PyroclasticPoint {
 		center: vec3(0.0, 0.0, 0.0),
-		radius: 12.0
+		radius: 8.0
 	};
 	point_prim.rasterize(voxel_volume.get_buffer());
 
-	// Test scene (#todo: CompositeVolume)
 	let constant_volume = ConstantVolume::new(
-		vec3(0.0, 0.0, 0.0), 8.0, vec3(0.8, 0.1, 0.2), vec3(0.76, 0.65, 0.95));
+		vec3(-10.0, 0.0, 0.0), 2.0, vec3(0.02, 0.02, 0.02), vec3(0.76, 0.65, 0.95));
+
 	let scene = Scene {
-		volume: Box::new(voxel_volume),
+		volume: Box::new(CompositeVolume {
+			children: vec![Box::new(voxel_volume), Box::new(constant_volume)]
+		}),
 		lights: vec![
 			Box::new(PointLight {
 				position: vec3(80.0, -20.0, 20.0),

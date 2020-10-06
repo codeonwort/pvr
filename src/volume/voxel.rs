@@ -27,14 +27,22 @@ impl Volume for VoxelVolume {
     fn scattering(&self, p: Vec3) -> Vec3 {
         self.buffer.sample_by_world_position(p)
     }
-    fn phase_function(&self, wi: Vec3, wo: Vec3) -> f32 {
+    fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
+        // WTF logic for composite volume
+        let den = self.buffer.sample_by_world_position(p).max_component();
+
         let t = wi & wo;
         let g = 0.76;
         
-        ISOMORPHIC_PHASE_FN * (1.0 - g * g) /
+        den * ISOMORPHIC_PHASE_FN * (1.0 - g * g) /
             (1.0 + g * g - 2.0 * g * t).powf(1.5)
     }
-    fn get_intersection(&self, ray: Ray) -> Option<(f32, f32)> {
-        self.buffer.get_ws_bounds().intersect(ray)
+    fn get_intersection(&self, ray: Ray) -> Vec<(f32, f32)> {
+        let mut intervals = Vec::new();
+        if let Some(v) = self.buffer.get_ws_bounds().intersect(ray) {
+            intervals.push(v);
+        }
+
+        intervals
     }
 }

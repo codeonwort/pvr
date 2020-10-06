@@ -31,15 +31,24 @@ impl Volume for ConstantVolume {
     fn scattering(&self, p: Vec3) -> Vec3 {
         Vec3::one()
     }
-    fn phase_function(&self, wi: Vec3, wo: Vec3) -> f32 {
-        ISOMORPHIC_PHASE_FN
+    fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
+        if self.contains(p) {
+            ISOMORPHIC_PHASE_FN
+        } else {
+            0.0
+        }
     }
-    fn get_intersection(&self, ray: Ray) -> Option<(f32, f32)> {
+    fn get_intersection(&self, ray: Ray) -> Vec<(f32, f32)> {
         let delta = ray.o - self.center;
         let a = ray.d & ray.d;
         let b = 2.0 * (ray.d & delta);
         let c = (delta & delta) - (self.radius * self.radius);
 
-        solve_quadratic(a, b, c)
+        let mut intervals = Vec::new();
+        if let Some(v) = solve_quadratic(a, b, c) {
+            intervals.push(v);
+        }
+
+        intervals
     }
 }

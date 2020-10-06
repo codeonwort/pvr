@@ -74,6 +74,20 @@ impl Vec3 {
         w * self.clone()
     }
 
+    pub fn max_component(&self) -> f32 {
+        if self.x < self.y {
+            if self.y < self.z {
+                self.z
+            } else {
+                self.y
+            }
+        } else if self.x < self.z {
+            self.z
+        } else {
+            self.x
+        }
+    }
+
     pub fn pow(&self, n: f32) -> Vec3 {
         Vec3 { x: self.x.powf(n), y: self.y.powf(n), z: self.z.powf(n) }
     }
