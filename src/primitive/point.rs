@@ -1,5 +1,5 @@
 use crate::vec3::*;
-use crate::voxel::*;
+use crate::voxel::voxel::*;
 use crate::primitive::primitive::*;
 
 pub struct Point {
@@ -19,7 +19,7 @@ impl Point {
 }
 
 impl Primitive for Point {
-    fn rasterize(&self, voxel_buffer: &mut VoxelBuffer) {
+    fn rasterize(&self, voxel_buffer: &mut dyn VoxelBuffer) {
         let p_min: Vec3 = voxel_buffer.world_to_voxel(self.center - self.radius.into());
         let p_max: Vec3 = voxel_buffer.world_to_voxel(self.center + self.radius.into());
         let (x_min, y_min, z_min) = (p_min.x as i32, p_min.y as i32, p_min.z as i32);

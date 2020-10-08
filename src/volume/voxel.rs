@@ -1,10 +1,10 @@
 use crate::volume::volume::*;
+use crate::voxel::voxel::*;
 use crate::vec3::*;
 use crate::ray::*;
-use crate::voxel::*;
 
 pub struct VoxelVolume {
-    pub buffer: VoxelBuffer, 
+    pub buffer: Box<dyn VoxelBuffer>,
 
     // temp
     pub emission_value: Vec3,
@@ -12,8 +12,8 @@ pub struct VoxelVolume {
 }
 
 impl VoxelVolume {
-    pub fn get_buffer(&mut self) -> &mut VoxelBuffer {
-        &mut self.buffer
+    pub fn get_buffer(&mut self) -> &mut dyn VoxelBuffer {
+        &mut *self.buffer
     }
 }
 

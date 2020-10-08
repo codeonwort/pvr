@@ -23,7 +23,8 @@ use volume::composite::CompositeVolume;
 mod voxel;
 mod noise;
 mod primitive;
-use voxel::VoxelBuffer;
+use voxel::voxel::VoxelBuffer;
+use voxel::dense::DenseBuffer;
 
 use primitive::primitive::Primitive;
 use noise::*;
@@ -122,11 +123,11 @@ fn main() {
 
 	stopwatch.start("rasterization");
 
-	let voxel_buffer = VoxelBuffer::new(
+	let voxel_buffer = DenseBuffer::new(
 		VOXEL_RESOLUTION,
 		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
 	let mut voxel_volume = VoxelVolume {
-		buffer: voxel_buffer,
+		buffer: Box::new(voxel_buffer),
 		emission_value: vec3(0.0, 0.0, 0.0),
 		absorption_coeff: vec3(0.75, 0.92, 0.72)
 	};
