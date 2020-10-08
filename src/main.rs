@@ -56,6 +56,10 @@ use scene::*;
 use renderer::*;
 
 // ----------------------------------------------------------
+mod timer;
+use timer::Stopwatch;
+
+// ----------------------------------------------------------
 // program code
 const IMAGE_WIDTH: usize = 512;
 const IMAGE_HEIGHT: usize = 512;
@@ -109,9 +113,14 @@ fn main() {
 	let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
 	let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
+	let mut stopwatch = Stopwatch::new();
+
 	// ----------------------------------------------------------
 	// Modeling (#todo: move to modeler)
+	
 	println!("> Rasterizing primitives into voxel buffer...");
+
+	stopwatch.start("rasterization");
 
 	let voxel_buffer = VoxelBuffer::new(
 		VOXEL_RESOLUTION,
@@ -127,6 +136,8 @@ fn main() {
 		radius: 8.0
 	};
 	point_prim.rasterize(voxel_volume.get_buffer());
+
+	stopwatch.stop();
 
 	let constant_volume = ConstantVolume::new(
 		vec3(-10.0, 0.0, 0.0), 2.0, vec3(0.02, 0.02, 0.02), vec3(0.76, 0.65, 0.95));
@@ -154,6 +165,7 @@ fn main() {
 	// ----------------------------------------------------------
 	// Rendering
 	println!("> Rendering the voxel buffer...");
+	stopwatch.start("rendering");
 
 	let render_settings = RenderSettings {
 		exposure: EXPOSURE,
@@ -161,6 +173,8 @@ fn main() {
 	};
 	let mut renderer = Renderer::new(render_settings, &mut rt);
 	renderer.render(&camera, &scene);
+
+	stopwatch.stop();
 
 	// Comment out rasterization and rendering to test noise
 	//noise_test(&mut rt);
