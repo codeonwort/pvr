@@ -25,6 +25,7 @@ mod noise;
 mod primitive;
 use voxel::voxel::VoxelBuffer;
 use voxel::dense::DenseBuffer;
+use voxel::sparse::SparseBuffer;
 
 use primitive::primitive::Primitive;
 use noise::*;
@@ -110,9 +111,33 @@ fn noise_test(rt: &mut RenderTarget) {
 	}
 }
 
+fn test_sparse_buffer() {
+	println!("=== TEST SPARSE BUFFER ===");
+	let bounds = AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) };
+	let mut buffer = SparseBuffer::new((512, 512, 256), bounds);
+
+	println!("> write sparse buffer...");
+	buffer.write(0, 0, 0, vec3(3.0, 4.0, 5.0));
+	buffer.write(50, 0, 70, vec3(7.0, 5.0, 2.0));
+	buffer.write(5, 0, 99, vec3(8.0, 1.0, 6.0));
+	buffer.write(99, 99, 99, vec3(5.0, 3.0, 1.0));
+	buffer.write(46, 0, -270, vec3(31.0, 42.0, 53.0));
+	//for y in 0..512 { buffer.write(0, y, 0, vec3(y as f32, 1.0, 1.0)); }
+
+	println!("> read sparse buffer...");
+	println!("buffer[0,0,0] = {:?}", buffer.read(0, 0, 0));
+	println!("buffer[50,0,70] = {:?}", buffer.read(50, 0, 70));
+	println!("buffer[5,0,99] = {:?}", buffer.read(5, 0, 99));
+	println!("buffer[99,99,99] = {:?}", buffer.read(99, 99, 99));
+	println!("buffer[46,0,-270] = {:?}", buffer.read(46, 0, -270));
+	//for y in 0..512 { println!("buffer[0,{},0] = {:?}", y, buffer.read(0, y, 0)); }
+}
+
 fn main() {
 	let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
 	let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
+
+	//test_sparse_buffer();
 
 	let mut stopwatch = Stopwatch::new();
 

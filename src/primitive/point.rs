@@ -32,7 +32,9 @@ impl Primitive for Point {
                 for z in z_min .. z_max {
                     let vs_pos = vec3(x as f32, y as f32, z as f32);
                     let density = self.density(voxel_buffer.voxel_to_world(vs_pos));
-                    voxel_buffer.write(x, y, z, density);
+					if density != Vec3::zero() {
+                    	voxel_buffer.write(x, y, z, density);
+					}
                 }
             }
         }

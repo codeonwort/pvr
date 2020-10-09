@@ -11,6 +11,8 @@ pub trait VoxelBuffer : Sync {
 
 	fn get_size(&self) -> (i32, i32, i32);
 	fn get_sizef(&self) -> Vec3;
+
+	// #todo: Shouldn't this be in VoxelVolume?
 	fn get_ws_bounds(&self) -> AABB;
 
 	fn read(&self, i: i32, j: i32, k: i32) -> Vec3;

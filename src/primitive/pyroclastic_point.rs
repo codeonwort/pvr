@@ -44,7 +44,9 @@ impl Primitive for PyroclasticPoint {
                     let filter_width = 2.0;//ws_bounds.size().length() / self.radius;
                     let pyro = pyroclastic(sphere_func, noise, filter_width);
 
-                    voxel_buffer.write(x, y, z, density * pyro);
+					if density != Vec3::zero() {
+	                    voxel_buffer.write(x, y, z, density * pyro);
+					}
                 }
             }
         }

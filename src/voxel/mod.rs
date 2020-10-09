@@ -1,3 +1,3 @@
 pub mod voxel;
 pub mod dense;
-//pub mod sparse;
+pub mod sparse;
