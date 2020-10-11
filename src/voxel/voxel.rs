@@ -15,6 +15,8 @@ pub trait VoxelBuffer : Sync {
 	// #todo: Shouldn't this be in VoxelVolume?
 	fn get_ws_bounds(&self) -> AABB;
 
+	fn get_occupancy(&self) -> f32; // (min=0.0, max=1.0) How many voxels have been materialized?
+
 	fn read(&self, i: i32, j: i32, k: i32) -> Vec3;
 	fn write(&mut self, i: i32, j: i32, k: i32, value: Vec3);
 }

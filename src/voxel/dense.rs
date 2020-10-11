@@ -103,6 +103,8 @@ impl VoxelBuffer for DenseBuffer {
 		self.ws_bounds
 	}
 
+	fn get_occupancy(&self) -> f32 { 1.0 }
+
 	// Raw read & write
 	fn read(&self, i: i32, j: i32, k: i32) -> Vec3 {
 		self.data[self.index(i, j, k)]

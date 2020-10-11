@@ -131,6 +131,27 @@ fn test_sparse_buffer() {
 	println!("buffer[99,99,99] = {:?}", buffer.read(99, 99, 99));
 	println!("buffer[46,0,-270] = {:?}", buffer.read(46, 0, -270));
 	//for y in 0..512 { println!("buffer[0,{},0] = {:?}", y, buffer.read(0, y, 0)); }
+
+	/*
+	// occupancy debugging
+	{
+		let buffer_size = (64, 64, 64);
+		let mut buffer = SparseBuffer::new(buffer_size, bounds);
+		println!("> buffer size: {:?}", buffer_size);
+
+		println!("> occupancy = {}", buffer.get_occupancy());
+
+		println!("> write to (0,0,0)");
+		buffer.write(0, 0, 0, vec3(1.0, 1.0, 1.0));
+		println!("> occupancy = {}", buffer.get_occupancy());
+
+		println!("> write to (63,63,63)");
+		buffer.write(63, 63, 63, vec3(1.0, 1.0, 1.0));
+		println!("> occupancy = {}", buffer.get_occupancy());
+	}
+	*/
+
+	println!("=== END TEST SPARSE BUFFER ===");
 }
 
 fn main() {
@@ -162,6 +183,7 @@ fn main() {
 		radius: 8.0
 	};
 	point_prim.rasterize(voxel_volume.get_buffer());
+	println!("Buffer occupancy: {}", voxel_volume.get_buffer().get_occupancy());
 
 	stopwatch.stop();
 

@@ -20,8 +20,8 @@ struct TreeBranch {
 }
 
 struct TreeLeaf {
-	coord: (i32, i32, i32),
-	size: (i32, i32, i32),
+	pub coord: (i32, i32, i32),
+	pub size: (i32, i32, i32),
 	data: Vec<Vec3>
 }
 
@@ -32,11 +32,18 @@ impl TreeBranch {
 			&& self.min_bounds.2 <= p.2 && p.2 < self.max_bounds.2
 	}
 	pub fn select_child(&self, p: (i32, i32, i32)) -> usize {
-		let x = if p.0 < (self.min_bounds.0 + self.max_bounds.0) / 2 { 0 } else { 1 };
-		let y = if p.1 < (self.min_bounds.1 + self.max_bounds.1) / 2 { 0 } else { 1 };
-		let z = if p.2 < (self.min_bounds.2 + self.max_bounds.2) / 2 { 0 } else { 1 };
-
-		(z << 2) | (y << 1) | x
+		let size_x = self.max_bounds.0 - self.min_bounds.0;
+		let size_y = self.max_bounds.1 - self.min_bounds.1;
+		let size_z = self.max_bounds.2 - self.min_bounds.2;
+		// #todo: it can be cached whether this branch is smaller than the block size
+		if size_x <= BLOCK_SIZE.0 && size_y <= BLOCK_SIZE.1 && size_z <= BLOCK_SIZE.2 {
+			0
+		} else {
+			let x = if p.0 < (self.min_bounds.0 + self.max_bounds.0) / 2 { 0 } else { 1 };
+			let y = if p.1 < (self.min_bounds.1 + self.max_bounds.1) / 2 { 0 } else { 1 };
+			let z = if p.2 < (self.min_bounds.2 + self.max_bounds.2) / 2 { 0 } else { 1 };
+			(z << 2) | (y << 1) | x
+		}
 	}
 	pub fn ensure_nonempty_child(&mut self, ix: usize) {
 		match self.children[ix] {
@@ -96,6 +103,11 @@ impl TreeLeaf {
 		let ix = self.index(p);
 		self.data[ix] = v;
 	}
+	pub fn contains(&self, p: (i32, i32, i32)) -> bool {
+		(self.coord.0 <= p.0) && (p.0 < self.coord.0 + self.size.0)
+		&& (self.coord.1 <= p.1) && (p.1 < self.coord.1 + self.size.1)
+		&& (self.coord.2 <= p.2) && (p.2 < self.coord.2 + self.size.2)
+	}
 	fn index(&self, p: (i32, i32, i32)) -> usize {
 		let x = p.0 - self.coord.0;
 		let y = p.1 - self.coord.1;
@@ -153,6 +165,41 @@ impl SparseBuffer {
 			}
 		}
 	}
+
+	fn get_occupancy_recurse(&self, node: &Octree, total_voxels: i32) -> f32 {
+		match node {
+			Octree::Empty => 0.0,
+			Octree::Branch(branch) => {
+				let branch_voxels = (branch.max_bounds.0 - branch.min_bounds.0)
+					* (branch.max_bounds.1 - branch.min_bounds.1)
+					* (branch.max_bounds.2 - branch.min_bounds.2);
+				let mut occ = 0.0;
+				for ix in 0..8 {
+					occ += self.get_occupancy_recurse(&branch.children[ix], branch_voxels);
+				}
+				occ * (branch_voxels as f32) / (total_voxels as f32)
+			},
+			Octree::Leaf(leaf) => {
+				let leaf_voxels = leaf.size.0 * leaf.size.1 * leaf.size.2;
+				(leaf_voxels as f32) / (total_voxels as f32)
+			}
+		}
+	}
+
+	fn find_leaf<'a>(&self, node: &'a Octree, coord: (i32, i32, i32)) -> Option<&'a TreeLeaf> {
+		match node {
+			Octree::Empty => None,
+			Octree::Branch(branch) => {
+				if branch.contains(coord) {
+					let ix = branch.select_child(coord);
+					self.find_leaf(&branch.children[ix], coord)
+				} else {
+					None
+				}
+			},
+			Octree::Leaf(leaf) => Some(&leaf)
+		}
+	}
 }
 
 impl VoxelBuffer for SparseBuffer {
@@ -165,6 +212,52 @@ impl VoxelBuffer for SparseBuffer {
 		let f = (vp - vec3(0.5, 0.5, 0.5)).floor();
 		let a = vp - vec3(0.5, 0.5, 0.5) - f;
 
+		// saves a few seconds, but still too slow than dense buffer.
+		let sample_offsets: [Vec3; 8] = [
+			vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 1.0),
+			vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0)];
+		let mut values: [Vec3; 8] = [
+			Vec3::zero(), Vec3::zero(), Vec3::zero(), Vec3::zero(),
+			Vec3::zero(), Vec3::zero(), Vec3::zero(), Vec3::zero()];
+		let mut prev_node: Option<&TreeLeaf> = None;
+		for i in 0..8 {
+			let pos = f + sample_offsets[i];
+			let posi = (pos.x as i32, pos.y as i32, pos.z as i32);
+			match prev_node {
+				None => {
+					let current_node = self.find_leaf(&self.root, posi);
+					match current_node {
+						None => {
+							values[i] = Vec3::zero();
+						},
+						Some(current_leaf) => {
+							values[i] = current_leaf.read(posi);
+							prev_node = current_node;
+						}
+					}
+				},
+				Some(leaf) => {
+					if leaf.contains(posi) {
+						values[i] = leaf.read(posi);
+					} else {
+						let current_node = self.find_leaf(&self.root, posi);
+						if let Some(current_leaf) = current_node {
+							if current_leaf.contains(posi) {
+								values[i] = current_leaf.read(posi);
+								prev_node = current_node;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		let front = lerp(lerp(values[0], values[4], a.x), lerp(values[2], values[6], a.x), a.y);
+		let back = lerp(lerp(values[1], values[5], a.x), lerp(values[3], values[7], a.x), a.y);
+
+		lerp(front, back, a.z)
+
+		/* 8 individual traverses are too slow
 		let v000 = self.sample_by_voxel_position(f);
 		let v001 = self.sample_by_voxel_position(f + vec3(0.0, 0.0, 1.0));
 		let v010 = self.sample_by_voxel_position(f + vec3(0.0, 1.0, 0.0));
@@ -178,6 +271,7 @@ impl VoxelBuffer for SparseBuffer {
 		let back = lerp(lerp(v001, v101, a.x), lerp(v011, v111, a.x), a.y);
 
 		lerp(front, back, a.z)
+		*/
 	}
 
 	fn world_to_voxel(&self, p: Vec3) -> Vec3 {
@@ -195,6 +289,11 @@ impl VoxelBuffer for SparseBuffer {
 	}
 	fn get_ws_bounds(&self) -> AABB {
 		self.ws_bounds
+	}
+
+	fn get_occupancy(&self) -> f32 {
+		let total_voxels = self.size.0 * self.size.1 * self.size.2;
+		self.get_occupancy_recurse(&self.root, total_voxels)
 	}
 
 	fn read(&self, i: i32, j: i32, k: i32) -> Vec3 {
@@ -220,8 +319,8 @@ impl VoxelBuffer for SparseBuffer {
 				Octree::Branch(branch) => {
 					let ix = branch.select_child(p);
 					branch.ensure_nonempty_child(ix);
-					let mut child_min;
-					let mut child_max;
+					let child_min;
+					let child_max;
 					match &branch.children[ix] {
 						Octree::Empty => {
 							panic!("Unexpected case");
