@@ -26,8 +26,7 @@ mod primitive;
 use voxel::voxel::VoxelBuffer;
 use voxel::dense::DenseBuffer;
 use voxel::sparse::SparseBuffer;
-
-use primitive::primitive::Primitive;
+use primitive::primitive::*;
 use noise::*;
 
 // ----------------------------------------------------------
@@ -178,7 +177,7 @@ fn main() {
 		absorption_coeff: vec3(0.75, 0.92, 0.72)
 	};
 
-	let point_prim = primitive::pyroclastic_point::PyroclasticPoint {
+	let point_prim = primitive::rast::pyroclastic_point::PyroclasticPoint {
 		center: vec3(0.0, 0.0, 0.0),
 		radius: 8.0
 	};

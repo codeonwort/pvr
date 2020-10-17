@@ -21,6 +21,10 @@ impl PyroclasticPoint {
 }
 
 impl Primitive for PyroclasticPoint {
+	//
+}
+
+impl RasterizationPrimitive for PyroclasticPoint {
     fn rasterize(&self, voxel_buffer: &mut dyn VoxelBuffer) {
         let p_min: Vec3 = voxel_buffer.world_to_voxel(self.center - self.radius.into());
         let p_max: Vec3 = voxel_buffer.world_to_voxel(self.center + self.radius.into());

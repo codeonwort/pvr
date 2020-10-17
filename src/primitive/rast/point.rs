@@ -19,6 +19,10 @@ impl Point {
 }
 
 impl Primitive for Point {
+	//
+}
+
+impl RasterizationPrimitive for Point {
     fn rasterize(&self, voxel_buffer: &mut dyn VoxelBuffer) {
         let p_min: Vec3 = voxel_buffer.world_to_voxel(self.center - self.radius.into());
         let p_max: Vec3 = voxel_buffer.world_to_voxel(self.center + self.radius.into());
