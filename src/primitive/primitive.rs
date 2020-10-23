@@ -1,5 +1,6 @@
 use crate::voxel::voxel::VoxelBuffer;
 
+// #todo: Needs Geometry trait
 pub trait Primitive {
 	//
 }

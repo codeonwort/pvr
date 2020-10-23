@@ -182,6 +182,14 @@ fn main() {
 		radius: 8.0
 	};
 	point_prim.rasterize(voxel_volume.get_buffer());
+
+	let line_prim = primitive::rast::line::Line {
+		p0: vec3(-20.0, 10.0, 0.0),
+		p1: vec3(20.0, 10.0, 0.0),
+		radius: 4.0
+	};
+	line_prim.rasterize(voxel_volume.get_buffer());
+
 	println!("Buffer occupancy: {}", voxel_volume.get_buffer().get_occupancy());
 
 	stopwatch.stop();
