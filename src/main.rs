@@ -109,9 +109,13 @@ fn ui_builder() -> impl Widget<AppState> {
 	let viewport = DruidViewport::new(IMAGE_WIDTH, IMAGE_HEIGHT)
 		.center();
 
-	let text = LocalizedString::new("hello-counter")
-		.with_arg("count", |data: &AppState, _env| (*data).progress.into());
-	let label = Label::new(text)
+	//let text = LocalizedString::new("hello-counter")
+	//	.with_arg("count", |data: &AppState, _env| (*data).progress.into());
+	//let label = Label::new(text)
+
+	let label = Label::new(|data: &AppState, _env: &druid::Env| {
+			format!("Progress: {}%", data.progress)
+		})
 		.padding(5.0)
 		.center();
 	let render_button = Button::new("Render (blocking)")
