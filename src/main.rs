@@ -2,7 +2,14 @@
 // standard or 3rd party crates
 use image::png::PngEncoder;
 use image::ColorType;
+use image::ImageBuffer;
+use image::DynamicImage;
 use std::fs::File;
+
+use druid::widget::{Button, Flex, Label};
+use druid::widget::{Image, ImageData};
+use druid::piet::ImageFormat;
+use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
 
 // ----------------------------------------------------------
 // (math) module: vec3, aabb
@@ -61,13 +68,8 @@ mod timer;
 use timer::Stopwatch;
 
 // ----------------------------------------------------------
-// druid
-use druid::widget::{Button, Flex, Label};
-use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
-
-// ----------------------------------------------------------
 // program code
-const WINDOW_TITLE: &str = "PVR";
+const WINDOW_TITLE: &str = "PVR GUI";
 const WINDOW_WIDTH: f64 = 1280.0;
 const WINDOW_HEIGHT: f64 = 768.0;
 
@@ -92,25 +94,32 @@ fn main() -> Result<(), PlatformError> {
 }
 
 fn ui_builder() -> impl Widget<u32> {
-	//let mut buffer: Vec<u8> = Vec::new();
-	//let buffer_size = (IMAGE_WIDTH * IMAGE_HEIGHT * 3) as usize;
-	//buffer.resize(buffer_size, 0);
-//
-	//let mut ptr = 0;
-	//for y in 0..IMAGE_WIDTH {
-	//	for x in 0..IMAGE_HEIGHT {
-	//		let r: u8 = 0x0;
-	//		let g: u8 = 0xff;
-	//		let b: u8 = 0x0;
-	//		buffer[ptr] = r;
-	//		buffer[ptr+1] = g;
-	//		buffer[ptr+2] = b;
-	//		ptr += 3;
-	//	}
-	//}
+	let mut rawdata: Vec<u8> = Vec::new();
+	let buffer_size = (IMAGE_WIDTH * IMAGE_HEIGHT * 3) as usize;
+	rawdata.resize(buffer_size, 0);
 
-	//let image_buf = ImageBuf::from_raw(&pixels, ImageFormat::Rgb, IMAGE_WIDTH, IMAGE_HEIGHT);
-	//let mut viewport = Image::new(image_buf);
+	let mut ptr = 0;
+	for _y in 0..IMAGE_WIDTH {
+		for _x in 0..IMAGE_HEIGHT {
+			let r: u8 = 0x0;
+			let g: u8 = 0xff;
+			let b: u8 = 0x0;
+			rawdata[ptr] = r;
+			rawdata[ptr+1] = g;
+			rawdata[ptr+2] = b;
+			ptr += 3;
+		}
+	}
+
+	// From image crate
+	let buffer = ImageBuffer::<image::Rgb<u8>,Vec<u8>>::from_raw(IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32, rawdata).unwrap();
+	let dyn_image = DynamicImage::ImageRgb8(buffer);
+	// To druid
+	let druid_img = ImageData::from_dynamic_image(dyn_image);
+	let viewport = Image::new(druid_img)
+		.fill_mode(druid::widget::FillStrat::None)
+		.border(druid::Color::WHITE, 1.0)
+		.center();
 
 	let text = LocalizedString::new("hello-counter").with_arg("count", |data: &u32, _env| (*data).into());
 	let label = Label::new(text).padding(5.0).center();
@@ -118,8 +127,13 @@ fn ui_builder() -> impl Widget<u32> {
 		.on_click(|_ctx, data, _env| *data += 1)
 		.padding(5.0);
 
-	Flex::column().with_child(label).with_child(button)
-	//Flex::column().with_child(button)
+	let mut col = Flex::column();
+	col.add_flex_child(viewport, 1.0); // #todo-druid: What is flex child?
+	col.add_child(label);
+	col.add_child(button);
+
+	col
+	//Flex::column().with_child(viewport).with_child(label).with_child(button)
 }
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
