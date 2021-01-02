@@ -61,7 +61,16 @@ mod timer;
 use timer::Stopwatch;
 
 // ----------------------------------------------------------
+// druid
+use druid::widget::{Button, Flex, Label};
+use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
+
+// ----------------------------------------------------------
 // program code
+const WINDOW_TITLE: &str = "PVR";
+const WINDOW_WIDTH: f64 = 1280.0;
+const WINDOW_HEIGHT: f64 = 768.0;
+
 const IMAGE_WIDTH: usize = 512;
 const IMAGE_HEIGHT: usize = 512;
 const FILENAME: &str = "test.png";
@@ -70,6 +79,48 @@ const GAMMA_VALUE: f32 = 2.2;
 const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
 const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
+
+fn main() -> Result<(), PlatformError> {
+	let main_window = WindowDesc::new(ui_builder)
+		.title(WINDOW_TITLE)
+		.window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
+	let data = 0_u32;
+
+	AppLauncher::with_window(main_window)
+		.use_simple_logger()
+		.launch(data)
+}
+
+fn ui_builder() -> impl Widget<u32> {
+	//let mut buffer: Vec<u8> = Vec::new();
+	//let buffer_size = (IMAGE_WIDTH * IMAGE_HEIGHT * 3) as usize;
+	//buffer.resize(buffer_size, 0);
+//
+	//let mut ptr = 0;
+	//for y in 0..IMAGE_WIDTH {
+	//	for x in 0..IMAGE_HEIGHT {
+	//		let r: u8 = 0x0;
+	//		let g: u8 = 0xff;
+	//		let b: u8 = 0x0;
+	//		buffer[ptr] = r;
+	//		buffer[ptr+1] = g;
+	//		buffer[ptr+2] = b;
+	//		ptr += 3;
+	//	}
+	//}
+
+	//let image_buf = ImageBuf::from_raw(&pixels, ImageFormat::Rgb, IMAGE_WIDTH, IMAGE_HEIGHT);
+	//let mut viewport = Image::new(image_buf);
+
+	let text = LocalizedString::new("hello-counter").with_arg("count", |data: &u32, _env| (*data).into());
+	let label = Label::new(text).padding(5.0).center();
+	let button = Button::new("Save as PNG")
+		.on_click(|_ctx, data, _env| *data += 1)
+		.padding(5.0);
+
+	Flex::column().with_child(label).with_child(button)
+	//Flex::column().with_child(button)
+}
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 	let out_file = File::create(filepath).unwrap();
@@ -153,7 +204,7 @@ fn test_sparse_buffer() {
 	println!("=== END TEST SPARSE BUFFER ===");
 }
 
-fn main() {
+fn main_old() {
 	let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
 	let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
