@@ -15,6 +15,26 @@ impl RenderTarget {
 		RenderTarget { pixels: pixels, width: width, height: height }
 	}
 
+	// #todo: Redundancy with generate_ldr_buffer()
+	pub fn copy_to(&self, buffer: &mut Vec<u8>) {
+		let buffer_size = (self.width * self.height * 3) as usize;
+		buffer.resize(buffer_size, 0);
+
+		let mut ptr = 0;
+		for y in 0..self.height {
+			for x in 0..self.width {
+				let px: Vec3 = self.get(x as i32, y as i32);
+				let r: u8 = (((px.x * 255.0) as u32) & 0xff) as u8;
+				let g: u8 = (((px.y * 255.0) as u32) & 0xff) as u8;
+				let b: u8 = (((px.z * 255.0) as u32) & 0xff) as u8;
+				buffer[ptr] = r;
+				buffer[ptr+1] = g;
+				buffer[ptr+2] = b;
+				ptr += 3;
+			}
+		}
+	}
+
 	pub fn generate_ldr_buffer(&self) -> Vec<u8> {
 		let mut buffer: Vec<u8> = Vec::new();
 		let buffer_size = (self.width * self.height * 3) as usize;

@@ -2,16 +2,15 @@
 // standard or 3rd party crates
 use image::png::PngEncoder;
 use image::ColorType;
-use image::ImageBuffer;
-use image::DynamicImage;
 use std::fs::File;
 use std::thread;
 use std::sync::{Arc, Mutex};
 
 use druid::widget::{Button, Flex, Label};
-use druid::widget::{Image, ImageData};
-use druid::piet::ImageFormat;
 use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
+
+mod gui;
+use gui::viewport::DruidViewport;
 
 // ----------------------------------------------------------
 // (math) module: vec3, aabb
@@ -87,11 +86,9 @@ const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
 #[derive(Clone, druid::Data)]
 pub struct AppState {
 	pub test_int: u32,
-	pub progress: u32
+	pub progress: u32,
+	pub render_result: Arc<Mutex<Vec<u8>>>
 }
-
-// #todo-druid: How to share AppState among threads?
-//type AppStateRef = Arc<Mutex<AppState>>;
 
 fn main() -> Result<(), PlatformError> {
 	let main_window = WindowDesc::new(ui_builder)
@@ -99,7 +96,8 @@ fn main() -> Result<(), PlatformError> {
 		.window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
 	let app_state = AppState {
 		test_int: 0,
-		progress: 0
+		progress: 0,
+		render_result: Arc::new(Mutex::new(Vec::new()))
 	};
 
 	AppLauncher::with_window(main_window)
@@ -108,31 +106,7 @@ fn main() -> Result<(), PlatformError> {
 }
 
 fn ui_builder() -> impl Widget<AppState> {
-	let mut rawdata: Vec<u8> = Vec::new();
-	let buffer_size = (IMAGE_WIDTH * IMAGE_HEIGHT * 3) as usize;
-	rawdata.resize(buffer_size, 0);
-
-	let mut ptr = 0;
-	for _y in 0..IMAGE_WIDTH {
-		for _x in 0..IMAGE_HEIGHT {
-			let r: u8 = 0x0;
-			let g: u8 = 0xff;
-			let b: u8 = 0x0;
-			rawdata[ptr] = r;
-			rawdata[ptr+1] = g;
-			rawdata[ptr+2] = b;
-			ptr += 3;
-		}
-	}
-
-	// From image crate
-	let buffer = ImageBuffer::<image::Rgb<u8>,Vec<u8>>::from_raw(IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32, rawdata).unwrap();
-	let dyn_image = DynamicImage::ImageRgb8(buffer);
-	// To druid
-	let druid_img = ImageData::from_dynamic_image(dyn_image);
-	let viewport = Image::new(druid_img)
-		.fill_mode(druid::widget::FillStrat::None)
-		.border(druid::Color::WHITE, 1.0)
+	let viewport = DruidViewport::new(IMAGE_WIDTH, IMAGE_HEIGHT)
 		.center();
 
 	let text = LocalizedString::new("hello-counter")
@@ -140,22 +114,25 @@ fn ui_builder() -> impl Widget<AppState> {
 	let label = Label::new(text)
 		.padding(5.0)
 		.center();
-	let save_button = Button::new("Save as PNG")
-		.on_click(|_ctx, data: &mut AppState, _env| (*data).test_int += 1)
-		.padding(5.0);
-	let render_button = Button::new("Render")
+	let render_button = Button::new("Render (blocking)")
 		.on_click(|_ctx, data: &mut AppState, _env| {
-			let rt = begin_render(data);
 			// #todo-druid: Run render job as async
+			let rt = begin_render(data);
+			let mut ex_buffer = data.render_result.lock().unwrap();
+			rt.copy_to(&mut ex_buffer);
 			// #todo-druid: Update viewport
+			_ctx.request_paint();
 		})
+		.padding(5.0);
+	let save_button = Button::new("Save as PNG (wip)")
+		.on_click(|_ctx, data: &mut AppState, _env| (*data).test_int += 1)
 		.padding(5.0);
 
 	let mut col = Flex::column();
-	col.add_flex_child(viewport, 1.0); // #todo-druid: What is flex child?
+	col.add_flex_child(viewport, 1.0);
 	col.add_child(label);
-	col.add_child(save_button);
 	col.add_child(render_button);
+	col.add_child(save_button);
 
 	col
 }
