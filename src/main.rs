@@ -5,6 +5,8 @@ use image::ColorType;
 use image::ImageBuffer;
 use image::DynamicImage;
 use std::fs::File;
+use std::thread;
+use std::sync::{Arc, Mutex};
 
 use druid::widget::{Button, Flex, Label};
 use druid::widget::{Image, ImageData};
@@ -82,18 +84,30 @@ const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
 const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
 
+#[derive(Clone, druid::Data)]
+pub struct AppState {
+	pub test_int: u32,
+	pub progress: u32
+}
+
+// #todo-druid: How to share AppState among threads?
+//type AppStateRef = Arc<Mutex<AppState>>;
+
 fn main() -> Result<(), PlatformError> {
 	let main_window = WindowDesc::new(ui_builder)
 		.title(WINDOW_TITLE)
 		.window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
-	let data = 0_u32;
+	let app_state = AppState {
+		test_int: 0,
+		progress: 0
+	};
 
 	AppLauncher::with_window(main_window)
 		.use_simple_logger()
-		.launch(data)
+		.launch(app_state)
 }
 
-fn ui_builder() -> impl Widget<u32> {
+fn ui_builder() -> impl Widget<AppState> {
 	let mut rawdata: Vec<u8> = Vec::new();
 	let buffer_size = (IMAGE_WIDTH * IMAGE_HEIGHT * 3) as usize;
 	rawdata.resize(buffer_size, 0);
@@ -121,19 +135,29 @@ fn ui_builder() -> impl Widget<u32> {
 		.border(druid::Color::WHITE, 1.0)
 		.center();
 
-	let text = LocalizedString::new("hello-counter").with_arg("count", |data: &u32, _env| (*data).into());
-	let label = Label::new(text).padding(5.0).center();
-	let button = Button::new("Save as PNG")
-		.on_click(|_ctx, data, _env| *data += 1)
+	let text = LocalizedString::new("hello-counter")
+		.with_arg("count", |data: &AppState, _env| (*data).progress.into());
+	let label = Label::new(text)
+		.padding(5.0)
+		.center();
+	let save_button = Button::new("Save as PNG")
+		.on_click(|_ctx, data: &mut AppState, _env| (*data).test_int += 1)
+		.padding(5.0);
+	let render_button = Button::new("Render")
+		.on_click(|_ctx, data: &mut AppState, _env| {
+			let rt = begin_render(data);
+			// #todo-druid: Run render job as async
+			// #todo-druid: Update viewport
+		})
 		.padding(5.0);
 
 	let mut col = Flex::column();
 	col.add_flex_child(viewport, 1.0); // #todo-druid: What is flex child?
 	col.add_child(label);
-	col.add_child(button);
+	col.add_child(save_button);
+	col.add_child(render_button);
 
 	col
-	//Flex::column().with_child(viewport).with_child(label).with_child(button)
 }
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
@@ -218,7 +242,7 @@ fn test_sparse_buffer() {
 	println!("=== END TEST SPARSE BUFFER ===");
 }
 
-fn main_old() {
+fn begin_render(app_state: &mut AppState) -> RenderTarget {
 	let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
 	let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
@@ -292,7 +316,7 @@ fn main_old() {
 		gamma: GAMMA_VALUE
 	};
 	let mut renderer = Renderer::new(render_settings, &mut rt);
-	renderer.render(&camera, &scene);
+	renderer.render(app_state, &camera, &scene);
 
 	stopwatch.stop();
 
@@ -303,5 +327,7 @@ fn main_old() {
 
 	print_rendertarget(&rt, FILENAME);
 
-    println!("Done.");
+	println!("Done.");
+	
+	rt
 }
