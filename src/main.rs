@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 
 use druid::widget::{Button, Flex, Label};
 use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
+use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, Env};
 
 mod gui;
 use gui::viewport::DruidViewport;
@@ -83,26 +84,81 @@ const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
 const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
 
+#[derive(Clone, PartialEq, druid::Data)]
+pub enum RenderJobState {
+	IDLE,
+	BUSY
+}
+
 #[derive(Clone, druid::Data)]
 pub struct AppState {
-	pub test_int: u32,
-	pub progress: u32,
+	pub render_job_state: RenderJobState,
+	pub progress: u32, // render job progress (0 ~ 100)
 	pub render_result: Arc<Mutex<Vec<u8>>>
 }
 
-fn main() -> Result<(), PlatformError> {
+pub const START_RENDER_TASK: Selector<u32> = Selector::new("start_render_task");
+pub const UPDATE_RENDER_PROGRESS: Selector<u32> = Selector::new("update_render_progress");
+pub const FINISH_RENDER_TASK: Selector<RenderTarget> = Selector::new("finish_render_task");
+
+struct Delegate {
+	event_sink: ExtEventSink
+}
+
+impl AppDelegate<AppState> for Delegate {
+	fn command(
+		&mut self,
+		_ctx: &mut DelegateCtx,
+		_target: Target,
+		cmd: &Command,
+		data: &mut AppState,
+		_env: &Env
+	) -> bool {
+		if cmd.is(START_RENDER_TASK) {
+			if data.render_job_state == RenderJobState::IDLE {
+				data.render_job_state = RenderJobState::BUSY;
+				let event_sink_clone = self.event_sink.clone();
+				thread::spawn(move || {
+					begin_render(event_sink_clone);
+				});
+			} else {
+				println!("Renderer is already busy (caught in the delegate)");
+			}
+		}
+		if let Some(progress) = cmd.get(UPDATE_RENDER_PROGRESS) {
+			data.progress = *progress;
+		}
+		if let Some(render_result) = cmd.get(FINISH_RENDER_TASK) {
+			let mut ex_buffer = data.render_result.lock().unwrap();
+			render_result.copy_to(&mut ex_buffer);
+			data.render_job_state = RenderJobState::IDLE;
+		}
+
+		true
+	}
+}
+
+fn main() {
 	let main_window = WindowDesc::new(ui_builder)
 		.title(WINDOW_TITLE)
 		.window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
+
+	let app = AppLauncher::with_window(main_window);
+
 	let app_state = AppState {
-		test_int: 0,
+		render_job_state: RenderJobState::IDLE,
 		progress: 0,
 		render_result: Arc::new(Mutex::new(Vec::new()))
 	};
 
-	AppLauncher::with_window(main_window)
+	let delegate = Delegate {
+		event_sink: app.get_external_handle()
+	};
+
+	app.delegate(delegate)
 		.use_simple_logger()
 		.launch(app_state)
+		.expect("Failed to launch app");
 }
 
 fn ui_builder() -> impl Widget<AppState> {
@@ -118,18 +174,19 @@ fn ui_builder() -> impl Widget<AppState> {
 		})
 		.padding(5.0)
 		.center();
-	let render_button = Button::new("Render (blocking)")
+	let render_button = Button::new("Render")
 		.on_click(|_ctx, data: &mut AppState, _env| {
-			// #todo-druid: Run render job as async
-			let rt = begin_render(data);
-			let mut ex_buffer = data.render_result.lock().unwrap();
-			rt.copy_to(&mut ex_buffer);
-			// #todo-druid: Update viewport
-			_ctx.request_paint();
+			// Run async render job
+			if data.render_job_state == RenderJobState::IDLE {
+				let cmd = Command::new(START_RENDER_TASK, 0);
+				_ctx.submit_command(cmd, None);
+			} else {
+				println!("Renderer is already busy (caught in button widget)");
+			}
 		})
 		.padding(5.0);
 	let save_button = Button::new("Save as PNG (wip)")
-		.on_click(|_ctx, data: &mut AppState, _env| (*data).test_int += 1)
+		.on_click(|_ctx, data: &mut AppState, _env| { /* todo */ })
 		.padding(5.0);
 
 	let mut col = Flex::column();
@@ -223,7 +280,7 @@ fn test_sparse_buffer() {
 	println!("=== END TEST SPARSE BUFFER ===");
 }
 
-fn begin_render(app_state: &mut AppState) -> RenderTarget {
+fn begin_render(sink: ExtEventSink) {
 	let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
 	let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
@@ -297,7 +354,7 @@ fn begin_render(app_state: &mut AppState) -> RenderTarget {
 		gamma: GAMMA_VALUE
 	};
 	let mut renderer = Renderer::new(render_settings, &mut rt);
-	renderer.render(app_state, &camera, &scene);
+	renderer.render(sink.clone(), &camera, &scene);
 
 	stopwatch.stop();
 
@@ -310,5 +367,6 @@ fn begin_render(app_state: &mut AppState) -> RenderTarget {
 
 	println!("Done.");
 	
-	rt
+	sink.submit_command(FINISH_RENDER_TASK, rt, None)
+		.expect("Failed to submit: FINISH_RENDER_TARGET");
 }

@@ -21,8 +21,15 @@ impl DruidViewport {
 }
 
 impl Widget<AppState> for DruidViewport {
-    fn event(&mut self, _: &mut EventCtx, _: &Event, _: &mut AppState, _: &Env) {
-        //
+    fn event(&mut self, ctx: &mut EventCtx, evt: &Event, _: &mut AppState, _: &Env) {
+        match evt {
+            // https://github.com/linebender/druid/blob/v0.6.0/druid/examples/ext_event.rs
+            // #todo: What syntax is this
+            Event::Command(cmd) if cmd.is(crate::FINISH_RENDER_TASK) => {
+                ctx.request_paint();
+            }
+            _ => (),
+        }
     }
 
     fn lifecycle(&mut self, _: &mut LifeCycleCtx, _: &LifeCycle, _: &AppState, _: &Env) {
@@ -30,10 +37,7 @@ impl Widget<AppState> for DruidViewport {
     }
 
     fn update(&mut self, ctx: &mut UpdateCtx, old: &AppState, new: &AppState, _: &Env) {
-        // #todo: Render target update flag in AppState?
-        //if !old.same(new) {
-            ctx.request_paint();
-        //}
+        //
     }
 
     fn layout(&mut self, _ctx: &mut LayoutCtx, bc: &BoxConstraints, _: &AppState, _: &Env) -> Size {
