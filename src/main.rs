@@ -3,6 +3,16 @@
 use image::png::PngEncoder;
 use image::ColorType;
 use std::fs::File;
+use std::thread;
+use std::sync::{Arc, Mutex};
+use std::env;
+
+use druid::widget::{Button, Flex, Label};
+use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
+use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, Env};
+
+mod gui;
+use gui::viewport::DruidViewport;
 
 // ----------------------------------------------------------
 // (math) module: vec3, aabb
@@ -62,6 +72,10 @@ use timer::Stopwatch;
 
 // ----------------------------------------------------------
 // program code
+const WINDOW_TITLE: &str = "PVR GUI";
+const WINDOW_WIDTH: f64 = 1280.0;
+const WINDOW_HEIGHT: f64 = 768.0;
+
 const IMAGE_WIDTH: usize = 512;
 const IMAGE_HEIGHT: usize = 512;
 const FILENAME: &str = "test.png";
@@ -70,6 +84,134 @@ const GAMMA_VALUE: f32 = 2.2;
 const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
 const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
+
+#[derive(Copy, Clone, PartialEq, druid::Data)]
+pub enum RenderJobState {
+	IDLE,
+	BUSY,
+	FINISHED
+}
+
+#[derive(Clone, druid::Data)]
+pub struct AppState {
+	pub render_job_state: RenderJobState,
+	pub progress: u32, // render job progress (0 ~ 100)
+	pub render_result: Arc<Mutex<Vec<u8>>>
+}
+
+fn can_launch_render_job(current_state: RenderJobState) -> bool {
+	current_state == RenderJobState::IDLE
+	|| current_state == RenderJobState::FINISHED
+}
+
+pub const START_RENDER_TASK: Selector<u32> = Selector::new("start_render_task");
+pub const UPDATE_RENDER_PROGRESS: Selector<u32> = Selector::new("update_render_progress");
+pub const FINISH_RENDER_TASK: Selector<RenderTarget> = Selector::new("finish_render_task");
+
+struct Delegate {
+	event_sink: ExtEventSink
+}
+
+impl AppDelegate<AppState> for Delegate {
+	fn command(
+		&mut self,
+		_ctx: &mut DelegateCtx,
+		_target: Target,
+		cmd: &Command,
+		data: &mut AppState,
+		_env: &Env
+	) -> bool {
+		if cmd.is(START_RENDER_TASK) {
+			if can_launch_render_job(data.render_job_state) {
+				data.render_job_state = RenderJobState::BUSY;
+				let event_sink_clone = self.event_sink.clone();
+				thread::spawn(move || {
+					begin_render(Some(event_sink_clone));
+				});
+			} else {
+				println!("Renderer is already busy (caught in the delegate)");
+			}
+		}
+		if let Some(progress) = cmd.get(UPDATE_RENDER_PROGRESS) {
+			data.progress = *progress;
+		}
+		if let Some(render_result) = cmd.get(FINISH_RENDER_TASK) {
+			let mut ex_buffer = data.render_result.lock().unwrap();
+			render_result.copy_to(&mut ex_buffer);
+			data.render_job_state = RenderJobState::FINISHED;
+		}
+
+		true
+	}
+}
+
+fn main() {
+	for arg in env::args() {
+		if arg == "-nogui" {
+			begin_render(None);
+			return;
+		}
+	}
+
+	let main_window = WindowDesc::new(ui_builder)
+		.title(WINDOW_TITLE)
+		.window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
+
+	let app = AppLauncher::with_window(main_window);
+
+	let app_state = AppState {
+		render_job_state: RenderJobState::IDLE,
+		progress: 0,
+		render_result: Arc::new(Mutex::new(Vec::new()))
+	};
+
+	let delegate = Delegate {
+		event_sink: app.get_external_handle()
+	};
+
+	app.delegate(delegate)
+		.use_simple_logger()
+		.launch(app_state)
+		.expect("Failed to launch app");
+}
+
+fn ui_builder() -> impl Widget<AppState> {
+	let viewport = DruidViewport::new(IMAGE_WIDTH, IMAGE_HEIGHT)
+		.center();
+
+	//let text = LocalizedString::new("hello-counter")
+	//	.with_arg("count", |data: &AppState, _env| (*data).progress.into());
+	//let label = Label::new(text)
+
+	let label = Label::new(|data: &AppState, _env: &druid::Env| {
+			format!("Progress: {}%", data.progress)
+		})
+		.padding(5.0)
+		.center();
+	let render_button = Button::new("Render")
+		.on_click(|_ctx, data: &mut AppState, _env| {
+			// Run async render job
+			if can_launch_render_job(data.render_job_state) {
+				let cmd = Command::new(START_RENDER_TASK, 0);
+				_ctx.submit_command(cmd, None);
+			} else {
+				println!("Renderer is already busy (caught in button widget)");
+			}
+		})
+		.padding(5.0);
+	// #todo-gui: File browser (seems browse API is absent in std)
+	//let save_button = Button::new("Save as PNG (wip)")
+	//	.on_click(|_ctx, data: &mut AppState, _env| { /* todo */ })
+	//	.padding(5.0);
+
+	let mut col = Flex::column();
+	col.add_flex_child(viewport, 1.0);
+	col.add_child(label);
+	col.add_child(render_button);
+	//col.add_child(save_button);
+
+	col
+}
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 	let out_file = File::create(filepath).unwrap();
@@ -153,7 +295,7 @@ fn test_sparse_buffer() {
 	println!("=== END TEST SPARSE BUFFER ===");
 }
 
-fn main() {
+fn begin_render(sink: Option<ExtEventSink>) {
 	let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
 	let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
@@ -227,7 +369,12 @@ fn main() {
 		gamma: GAMMA_VALUE
 	};
 	let mut renderer = Renderer::new(render_settings, &mut rt);
-	renderer.render(&camera, &scene);
+
+	let sink_clone = match &sink {
+		Some(_sink) => Some(_sink.clone()),
+		None => None
+	};
+	renderer.render(sink_clone, &camera, &scene);
 
 	stopwatch.stop();
 
@@ -238,5 +385,15 @@ fn main() {
 
 	print_rendertarget(&rt, FILENAME);
 
-    println!("Done.");
+	println!("Done.");
+	
+	match &sink {
+		Some(_sink) => {
+			_sink.submit_command(FINISH_RENDER_TASK, rt, None)
+			.expect("Failed to submit: FINISH_RENDER_TARGET");
+		},
+		None => {
+			//
+		}
+	}
 }

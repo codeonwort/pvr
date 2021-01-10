@@ -30,11 +30,12 @@ struct RenderRegion {
 struct Progress {
     total: u32,
     current: u32,
-    prev_percent: u32
+    prev_percent: u32,
+    event_sink: Option<druid::ExtEventSink>
 }
 impl Progress {
-    pub fn new(total: u32) -> Progress {
-        Progress { total: total, current: 0, prev_percent: 0 }
+    pub fn new(total: u32, event_sink: Option<druid::ExtEventSink>) -> Progress {
+        Progress { total: total, current: 0, prev_percent: 0, event_sink: event_sink }
     }
     pub fn update(&mut self, append: u32) {
         self.current += append;
@@ -44,6 +45,11 @@ impl Progress {
         if percent != self.prev_percent {
             println!("progress: {} %", percent);
             self.prev_percent = percent;
+            if let Some(_sink) = &self.event_sink {
+                _sink
+                    .submit_command(super::UPDATE_RENDER_PROGRESS, percent, None)
+                    .expect("Failed to submit: UPDATE_RENDER_PROGRESS");
+            }
         }
     }
 }
@@ -54,7 +60,7 @@ impl Renderer<'_> {
         Renderer { settings: settings, render_target: render_target }
     }
 
-    pub fn render(&mut self, camera: &Camera, scene: &Scene) {
+    pub fn render(&mut self, event_sink: Option<druid::ExtEventSink>, camera: &Camera, scene: &Scene) {
         let width = self.render_target.get_width();
         let height = self.render_target.get_height();
         let inv_width = 1.0 / (width as f32);
@@ -87,7 +93,7 @@ impl Renderer<'_> {
 
         // Raymarching
         let total_pixels = width * height;
-        let progress = Mutex::new(Progress::new(total_pixels as u32));
+        let progress = Mutex::new(Progress::new(total_pixels as u32, event_sink));
         regions.par_iter_mut().for_each(|r| {
             // Render a subregion
             for y in r.y0 .. r.y1 {
