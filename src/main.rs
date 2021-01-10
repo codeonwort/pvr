@@ -5,6 +5,7 @@ use image::ColorType;
 use std::fs::File;
 use std::thread;
 use std::sync::{Arc, Mutex};
+use std::env;
 
 use druid::widget::{Button, Flex, Label};
 use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
@@ -125,7 +126,7 @@ impl AppDelegate<AppState> for Delegate {
 				data.render_job_state = RenderJobState::BUSY;
 				let event_sink_clone = self.event_sink.clone();
 				thread::spawn(move || {
-					begin_render(event_sink_clone);
+					begin_render(Some(event_sink_clone));
 				});
 			} else {
 				println!("Renderer is already busy (caught in the delegate)");
@@ -145,6 +146,13 @@ impl AppDelegate<AppState> for Delegate {
 }
 
 fn main() {
+	for arg in env::args() {
+		if arg == "-nogui" {
+			begin_render(None);
+			return;
+		}
+	}
+
 	let main_window = WindowDesc::new(ui_builder)
 		.title(WINDOW_TITLE)
 		.window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
@@ -287,7 +295,7 @@ fn test_sparse_buffer() {
 	println!("=== END TEST SPARSE BUFFER ===");
 }
 
-fn begin_render(sink: ExtEventSink) {
+fn begin_render(sink: Option<ExtEventSink>) {
 	let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
 	let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
@@ -361,7 +369,12 @@ fn begin_render(sink: ExtEventSink) {
 		gamma: GAMMA_VALUE
 	};
 	let mut renderer = Renderer::new(render_settings, &mut rt);
-	renderer.render(sink.clone(), &camera, &scene);
+
+	let sink_clone = match &sink {
+		Some(_sink) => Some(_sink.clone()),
+		None => None
+	};
+	renderer.render(sink_clone, &camera, &scene);
 
 	stopwatch.stop();
 
@@ -374,6 +387,13 @@ fn begin_render(sink: ExtEventSink) {
 
 	println!("Done.");
 	
-	sink.submit_command(FINISH_RENDER_TASK, rt, None)
-		.expect("Failed to submit: FINISH_RENDER_TARGET");
+	match &sink {
+		Some(_sink) => {
+			_sink.submit_command(FINISH_RENDER_TASK, rt, None)
+			.expect("Failed to submit: FINISH_RENDER_TARGET");
+		},
+		None => {
+			//
+		}
+	}
 }

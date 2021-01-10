@@ -31,10 +31,10 @@ struct Progress {
     total: u32,
     current: u32,
     prev_percent: u32,
-    event_sink: druid::ExtEventSink
+    event_sink: Option<druid::ExtEventSink>
 }
 impl Progress {
-    pub fn new(total: u32, event_sink: druid::ExtEventSink) -> Progress {
+    pub fn new(total: u32, event_sink: Option<druid::ExtEventSink>) -> Progress {
         Progress { total: total, current: 0, prev_percent: 0, event_sink: event_sink }
     }
     pub fn update(&mut self, append: u32) {
@@ -45,9 +45,11 @@ impl Progress {
         if percent != self.prev_percent {
             println!("progress: {} %", percent);
             self.prev_percent = percent;
-            self.event_sink
-                .submit_command(super::UPDATE_RENDER_PROGRESS, percent, None)
-                .expect("Failed to submit: UPDATE_RENDER_PROGRESS");
+            if let Some(_sink) = &self.event_sink {
+                _sink
+                    .submit_command(super::UPDATE_RENDER_PROGRESS, percent, None)
+                    .expect("Failed to submit: UPDATE_RENDER_PROGRESS");
+            }
         }
     }
 }
@@ -58,7 +60,7 @@ impl Renderer<'_> {
         Renderer { settings: settings, render_target: render_target }
     }
 
-    pub fn render(&mut self, event_sink: druid::ExtEventSink, camera: &Camera, scene: &Scene) {
+    pub fn render(&mut self, event_sink: Option<druid::ExtEventSink>, camera: &Camera, scene: &Scene) {
         let width = self.render_target.get_width();
         let height = self.render_target.get_height();
         let inv_width = 1.0 / (width as f32);
