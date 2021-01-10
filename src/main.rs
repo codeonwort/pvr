@@ -84,10 +84,11 @@ const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
 const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
 
-#[derive(Clone, PartialEq, druid::Data)]
+#[derive(Copy, Clone, PartialEq, druid::Data)]
 pub enum RenderJobState {
 	IDLE,
-	BUSY
+	BUSY,
+	FINISHED
 }
 
 #[derive(Clone, druid::Data)]
@@ -95,6 +96,11 @@ pub struct AppState {
 	pub render_job_state: RenderJobState,
 	pub progress: u32, // render job progress (0 ~ 100)
 	pub render_result: Arc<Mutex<Vec<u8>>>
+}
+
+fn can_launch_render_job(current_state: RenderJobState) -> bool {
+	current_state == RenderJobState::IDLE
+	|| current_state == RenderJobState::FINISHED
 }
 
 pub const START_RENDER_TASK: Selector<u32> = Selector::new("start_render_task");
@@ -115,7 +121,7 @@ impl AppDelegate<AppState> for Delegate {
 		_env: &Env
 	) -> bool {
 		if cmd.is(START_RENDER_TASK) {
-			if data.render_job_state == RenderJobState::IDLE {
+			if can_launch_render_job(data.render_job_state) {
 				data.render_job_state = RenderJobState::BUSY;
 				let event_sink_clone = self.event_sink.clone();
 				thread::spawn(move || {
@@ -131,7 +137,7 @@ impl AppDelegate<AppState> for Delegate {
 		if let Some(render_result) = cmd.get(FINISH_RENDER_TASK) {
 			let mut ex_buffer = data.render_result.lock().unwrap();
 			render_result.copy_to(&mut ex_buffer);
-			data.render_job_state = RenderJobState::IDLE;
+			data.render_job_state = RenderJobState::FINISHED;
 		}
 
 		true
@@ -177,7 +183,7 @@ fn ui_builder() -> impl Widget<AppState> {
 	let render_button = Button::new("Render")
 		.on_click(|_ctx, data: &mut AppState, _env| {
 			// Run async render job
-			if data.render_job_state == RenderJobState::IDLE {
+			if can_launch_render_job(data.render_job_state) {
 				let cmd = Command::new(START_RENDER_TASK, 0);
 				_ctx.submit_command(cmd, None);
 			} else {
@@ -185,15 +191,16 @@ fn ui_builder() -> impl Widget<AppState> {
 			}
 		})
 		.padding(5.0);
-	let save_button = Button::new("Save as PNG (wip)")
-		.on_click(|_ctx, data: &mut AppState, _env| { /* todo */ })
-		.padding(5.0);
+	// #todo-gui: File browser (seems browse API is absent in std)
+	//let save_button = Button::new("Save as PNG (wip)")
+	//	.on_click(|_ctx, data: &mut AppState, _env| { /* todo */ })
+	//	.padding(5.0);
 
 	let mut col = Flex::column();
 	col.add_flex_child(viewport, 1.0);
 	col.add_child(label);
 	col.add_child(render_button);
-	col.add_child(save_button);
+	//col.add_child(save_button);
 
 	col
 }
