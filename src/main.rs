@@ -120,7 +120,7 @@ impl AppDelegate<AppState> for Delegate {
 		cmd: &Command,
 		data: &mut AppState,
 		_env: &Env
-	) -> bool {
+	) -> druid::Handled {
 		if cmd.is(START_RENDER_TASK) {
 			if can_launch_render_job(data.render_job_state) {
 				data.render_job_state = RenderJobState::BUSY;
@@ -141,7 +141,9 @@ impl AppDelegate<AppState> for Delegate {
 			data.render_job_state = RenderJobState::FINISHED;
 		}
 
-		true
+		// WARNING
+		// - If Yes, delivery will stop and FINISH_RENDER_TASK does not reach to my viewport
+		druid::Handled::No
 	}
 }
 
@@ -192,8 +194,9 @@ fn ui_builder() -> impl Widget<AppState> {
 		.on_click(|_ctx, data: &mut AppState, _env| {
 			// Run async render job
 			if can_launch_render_job(data.render_job_state) {
-				let cmd = Command::new(START_RENDER_TASK, 0);
-				_ctx.submit_command(cmd, None);
+				// Global = delivered to all open windows and widgets in them, until handled.
+				let cmd = Command::new(START_RENDER_TASK, 0, Target::Global);
+				_ctx.submit_command(cmd);
 			} else {
 				println!("Renderer is already busy (caught in button widget)");
 			}
@@ -389,7 +392,8 @@ fn begin_render(sink: Option<ExtEventSink>) {
 	
 	match &sink {
 		Some(_sink) => {
-			_sink.submit_command(FINISH_RENDER_TASK, rt, None)
+			// Global = delivered to all open windows and widgets in them, until handled.
+			_sink.submit_command(FINISH_RENDER_TASK, rt, Target::Global)
 			.expect("Failed to submit: FINISH_RENDER_TARGET");
 		},
 		None => {
