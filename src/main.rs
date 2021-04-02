@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::env;
 
 use druid::widget::{Button, Flex, Label};
-use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
+use druid::{AppLauncher, Widget, WidgetExt, WindowDesc};
 use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, Env};
 
 mod gui;
