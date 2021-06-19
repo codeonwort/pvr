@@ -46,8 +46,9 @@ impl Progress {
             println!("progress: {} %", percent);
             self.prev_percent = percent;
             if let Some(_sink) = &self.event_sink {
+				// Global = delivered to all open windows and widgets in them, until handled.
                 _sink
-                    .submit_command(super::UPDATE_RENDER_PROGRESS, percent, None)
+                    .submit_command(super::UPDATE_RENDER_PROGRESS, percent, druid::Target::Global)
                     .expect("Failed to submit: UPDATE_RENDER_PROGRESS");
             }
         }
