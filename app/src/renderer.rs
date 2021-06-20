@@ -1,9 +1,9 @@
 // #todo-pvrlib: Move to pvrlib
 use pvrlib::math::vec3::*;
+use pvrlib::camera::*;
 use pvrlib::render::rendertarget::*;
 
 use crate::raymarcher::*;
-use crate::camera::*;
 use crate::scene::Scene;
 
 use std::ops::Deref;

@@ -17,6 +17,7 @@ use pvrlib::math::vec3::*;
 use pvrlib::math::aabb::*;
 use pvrlib::math::noise::*;
 use pvrlib::light::*;
+use pvrlib::camera::*;
 use pvrlib::render::rendertarget::*;
 
 // ----------------------------------------------------------
@@ -39,11 +40,6 @@ use voxel::voxel::VoxelBuffer;
 use voxel::dense::DenseBuffer;
 use voxel::sparse::SparseBuffer;
 use primitive::primitive::*;
-
-// ----------------------------------------------------------
-// module: camera
-mod camera;
-use camera::Camera;
 
 // ----------------------------------------------------------
 // module: raymarcher

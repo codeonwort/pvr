@@ -1,6 +1,5 @@
-// #todo-pvrlib: Move to pvrlib
-use pvrlib::math::vec3::Vec3;
-use pvrlib::math::ray::Ray;
+use crate::math::vec3::Vec3;
+use crate::math::ray::Ray;
 
 pub struct Camera {
     position: Vec3,
