@@ -24,9 +24,9 @@ impl Widget<AppState> for DruidViewport {
     fn event(&mut self, ctx: &mut EventCtx, evt: &Event, _: &mut AppState, _: &Env) {
         match evt {
             // https://github.com/linebender/druid/blob/v0.6.0/druid/examples/ext_event.rs
-            Event::Command(cmd) => if cmd.is(crate::FINISH_RENDER_TASK) {
+            Event::Command(cmd) if cmd.is(crate::FINISH_RENDER_TASK) => {
                 ctx.request_paint();
-            },
+            }
             _ => (),
         }
     }

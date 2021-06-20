@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::env;
 
 use druid::widget::{Button, Flex, Label};
-use druid::{AppLauncher, Widget, WidgetExt, WindowDesc};
+use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
 use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, Env};
 
 mod gui;
@@ -120,7 +120,7 @@ impl AppDelegate<AppState> for Delegate {
 		cmd: &Command,
 		data: &mut AppState,
 		_env: &Env
-	) -> druid::Handled {
+	) -> bool {
 		if cmd.is(START_RENDER_TASK) {
 			if can_launch_render_job(data.render_job_state) {
 				data.render_job_state = RenderJobState::BUSY;
@@ -141,9 +141,7 @@ impl AppDelegate<AppState> for Delegate {
 			data.render_job_state = RenderJobState::FINISHED;
 		}
 
-		// WARNING
-		// - If Yes, delivery will stop and FINISH_RENDER_TASK does not reach to my viewport
-		druid::Handled::No
+		true
 	}
 }
 
@@ -194,9 +192,8 @@ fn ui_builder() -> impl Widget<AppState> {
 		.on_click(|_ctx, data: &mut AppState, _env| {
 			// Run async render job
 			if can_launch_render_job(data.render_job_state) {
-				// Global = delivered to all open windows and widgets in them, until handled.
-				let cmd = Command::new(START_RENDER_TASK, 0, Target::Global);
-				_ctx.submit_command(cmd);
+				let cmd = Command::new(START_RENDER_TASK, 0);
+				_ctx.submit_command(cmd, None);
 			} else {
 				println!("Renderer is already busy (caught in button widget)");
 			}
@@ -392,8 +389,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 	
 	match &sink {
 		Some(_sink) => {
-			// Global = delivered to all open windows and widgets in them, until handled.
-			_sink.submit_command(FINISH_RENDER_TASK, rt, Target::Global)
+			_sink.submit_command(FINISH_RENDER_TASK, rt, None)
 			.expect("Failed to submit: FINISH_RENDER_TARGET");
 		},
 		None => {
