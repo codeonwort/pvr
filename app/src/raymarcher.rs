@@ -1,6 +1,6 @@
 use pvrlib::math::vec3::*;
+use pvrlib::math::ray::*;
 use crate::volume::volume::*;
-use crate::ray::*;
 use crate::light::*;
 
 pub struct IntegrationResult {

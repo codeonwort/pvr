@@ -1,5 +1,5 @@
 use pvrlib::math::vec3::Vec3;
-use crate::ray::Ray;
+use pvrlib::math::ray::Ray;
 
 pub struct Camera {
     position: Vec3,

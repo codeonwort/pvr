@@ -1,5 +1,5 @@
 use super::voxel::VoxelBuffer;
-use crate::aabb::*;
+use pvrlib::math::aabb::*;
 use pvrlib::math::vec3::*;
 
 // -------------------------------------

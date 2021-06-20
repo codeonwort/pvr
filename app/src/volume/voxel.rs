@@ -1,7 +1,7 @@
 use crate::volume::volume::*;
 use crate::voxel::voxel::*;
 use pvrlib::math::vec3::*;
-use crate::ray::*;
+use pvrlib::math::ray::*;
 
 pub struct VoxelVolume {
     pub buffer: Box<dyn VoxelBuffer>,

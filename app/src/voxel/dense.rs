@@ -1,6 +1,6 @@
 use super::voxel::VoxelBuffer;
 use pvrlib::math::vec3::*;
-use crate::aabb::*;
+use pvrlib::math::aabb::*;
 
 pub struct DenseBuffer {
 	size_x: i32,

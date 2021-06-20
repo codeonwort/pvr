@@ -1,5 +1,5 @@
 use pvrlib::math::vec3::*;
-use crate::aabb::*;
+use pvrlib::math::aabb::*;
 use std::marker::Sync;
 
 pub trait VoxelBuffer : Sync {

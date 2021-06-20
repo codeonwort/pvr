@@ -1,4 +1,4 @@
-use pvrlib::math::vec3::Vec3;
+use super::vec3::Vec3;
 
 #[derive(Copy, Clone, Default, Debug)]
 pub struct Ray {

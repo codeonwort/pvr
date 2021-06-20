@@ -1,5 +1,5 @@
-use pvrlib::math::vec3::*;
-use crate::ray::*;
+use super::vec3::*;
+use super::ray::*;
 use std::mem::swap;
 
 #[derive(Copy, Clone, Default, Debug)]

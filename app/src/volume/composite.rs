@@ -1,6 +1,6 @@
 use super::volume::Volume;
 use pvrlib::math::vec3::*;
-use crate::ray::*;
+use pvrlib::math::ray::*;
 
 pub struct CompositeVolume {
     pub children: Vec<Box<dyn Volume>>
