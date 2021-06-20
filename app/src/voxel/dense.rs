@@ -1,5 +1,5 @@
 use super::voxel::VoxelBuffer;
-use crate::vec3::*;
+use pvrlib::math::vec3::*;
 use crate::aabb::*;
 
 pub struct DenseBuffer {

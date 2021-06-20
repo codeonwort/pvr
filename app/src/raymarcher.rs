@@ -1,4 +1,4 @@
-use crate::vec3::*;
+use pvrlib::math::vec3::*;
 use crate::volume::volume::*;
 use crate::ray::*;
 use crate::light::*;

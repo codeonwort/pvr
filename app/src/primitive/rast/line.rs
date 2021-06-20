@@ -1,4 +1,4 @@
-use crate::vec3::*;
+use pvrlib::math::vec3::*;
 use crate::voxel::voxel::*;
 use crate::primitive::primitive::*;
 

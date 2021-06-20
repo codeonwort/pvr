@@ -1,4 +1,4 @@
-use crate::vec3::Vec3;
+use pvrlib::math::vec3::Vec3;
 use crate::ray::Ray;
 
 pub struct Camera {

@@ -1,6 +1,6 @@
 // #todo-math: Not implemented
 
-use crate::vec3::*;
+use pvrlib::math::vec3::*;
 use std::default::Default;
 use std::convert::Into;
 use std::ops::Mul;

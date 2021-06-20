@@ -1,4 +1,4 @@
-use crate::vec3::*;
+use pvrlib::math::vec3::*;
 
 // Noise functions from https://www.shadertoy.com/view/4dS3Wd
 

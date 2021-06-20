@@ -1,5 +1,5 @@
 use super::volume::Volume;
-use crate::vec3::*;
+use pvrlib::math::vec3::*;
 use crate::ray::*;
 
 pub struct CompositeVolume {

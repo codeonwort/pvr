@@ -11,14 +11,16 @@ use druid::widget::{Button, Flex, Label};
 use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
 use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, Env};
 
+use pvrlib::math::vec3::*;
+
 mod gui;
 use gui::viewport::DruidViewport;
 
 // ----------------------------------------------------------
 // (math) module: vec3, aabb
 mod aabb;
-mod vec3;
-use vec3::*;
+//mod vec3;
+//use vec3::*;
 use aabb::*;
 
 // ----------------------------------------------------------

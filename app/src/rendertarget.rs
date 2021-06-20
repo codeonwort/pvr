@@ -1,4 +1,4 @@
-use crate::vec3::*;
+use pvrlib::math::vec3::*;
 
 pub struct RenderTarget {
 	pixels: Vec<Vec3>,

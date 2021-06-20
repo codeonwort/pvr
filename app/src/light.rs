@@ -1,4 +1,4 @@
-use crate::vec3::*;
+use pvrlib::math::vec3::*;
 
 use std::marker::Sync;
 

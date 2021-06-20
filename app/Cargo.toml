@@ -10,3 +10,4 @@ edition = "2018"
 image = "0.23.9"
 rayon = "1.1"
 druid = { version = "0.6.0", features = ["image"] }
+pvrlib = { path = "../pvrlib" }

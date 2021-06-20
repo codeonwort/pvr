@@ -1,6 +1,6 @@
 use super::voxel::VoxelBuffer;
 use crate::aabb::*;
-use crate::vec3::*;
+use pvrlib::math::vec3::*;
 
 // -------------------------------------
 // Auxiliary for sparse buffer impl.
