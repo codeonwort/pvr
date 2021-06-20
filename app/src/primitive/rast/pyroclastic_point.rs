@@ -1,5 +1,5 @@
 use pvrlib::math::vec3::*;
-use crate::voxel::voxel::VoxelBuffer;
+use pvrlib::voxelbuffer::VoxelBuffer;
 use crate::primitive::primitive::*;
 
 use pvrlib::math::noise::*; // pyroclastic test

@@ -1,5 +1,5 @@
 use pvrlib::math::vec3::*;
-use crate::voxel::voxel::*;
+use pvrlib::voxelbuffer::VoxelBuffer;
 use crate::primitive::primitive::*;
 
 pub struct Line {

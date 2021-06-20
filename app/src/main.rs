@@ -19,6 +19,9 @@ use pvrlib::math::noise::*;
 use pvrlib::light::*;
 use pvrlib::camera::*;
 use pvrlib::render::rendertarget::*;
+use pvrlib::voxelbuffer::VoxelBuffer;
+use pvrlib::voxelbuffer::dense::DenseBuffer;
+use pvrlib::voxelbuffer::sparse::SparseBuffer;
 
 // ----------------------------------------------------------
 // module: gui
@@ -33,12 +36,8 @@ use volume::constant::ConstantVolume;
 use volume::composite::CompositeVolume;
 
 // ----------------------------------------------------------
-// module: voxel, primitive
-mod voxel;
+// module: primitive
 mod primitive;
-use voxel::voxel::VoxelBuffer;
-use voxel::dense::DenseBuffer;
-use voxel::sparse::SparseBuffer;
 use primitive::primitive::*;
 
 // ----------------------------------------------------------

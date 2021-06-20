@@ -1,5 +1,9 @@
-use pvrlib::math::vec3::*;
-use pvrlib::math::aabb::*;
+pub mod dense;
+pub mod sparse;
+
+use crate::math::vec3::Vec3;
+use crate::math::aabb::AABB;
+
 use std::marker::Sync;
 
 pub trait VoxelBuffer : Sync {
@@ -20,4 +24,3 @@ pub trait VoxelBuffer : Sync {
 	fn read(&self, i: i32, j: i32, k: i32) -> Vec3;
 	fn write(&mut self, i: i32, j: i32, k: i32, value: Vec3);
 }
-

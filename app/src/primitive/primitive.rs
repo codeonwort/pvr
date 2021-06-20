@@ -1,4 +1,4 @@
-use crate::voxel::voxel::VoxelBuffer;
+use pvrlib::voxelbuffer::VoxelBuffer;
 
 // #todo: Needs Geometry trait
 pub trait Primitive {
