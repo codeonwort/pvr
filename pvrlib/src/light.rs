@@ -1,5 +1,6 @@
-// #todo-pvrlib: Move to pvrlib
-use pvrlib::math::vec3::*;
+// #todo-light: Make submodule if light codebase goes bigger
+
+use crate::math::vec3::*;
 
 use std::marker::Sync;
 

@@ -1,6 +1,6 @@
 // #todo-pvrlib: Move to pvrlib
+use pvrlib::light::Light;
 use crate::volume::volume::Volume;
-use crate::light::Light;
 
 pub struct Scene {
     pub volume: Box<dyn Volume>,

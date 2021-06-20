@@ -16,6 +16,7 @@ use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, E
 use pvrlib::math::vec3::*;
 use pvrlib::math::aabb::*;
 use pvrlib::math::noise::*;
+use pvrlib::light::*;
 use pvrlib::render::rendertarget::*;
 
 // ----------------------------------------------------------
@@ -47,11 +48,6 @@ use camera::Camera;
 // ----------------------------------------------------------
 // module: raymarcher
 mod raymarcher;
-
-// ----------------------------------------------------------
-// module: light
-mod light;
-use light::*;
 
 // ----------------------------------------------------------
 // module: scene, renderer

@@ -1,4 +1,5 @@
 pub mod math;
+pub mod light;
 pub mod render;
 
 #[cfg(test)]
