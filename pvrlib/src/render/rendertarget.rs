@@ -1,5 +1,4 @@
-// #todo-pvrlib: Move to pvrlib
-use pvrlib::math::vec3::*;
+use crate::math::vec3::*;
 
 pub struct RenderTarget {
 	pixels: Vec<Vec3>,

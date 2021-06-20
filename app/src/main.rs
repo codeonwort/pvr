@@ -16,6 +16,7 @@ use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, E
 use pvrlib::math::vec3::*;
 use pvrlib::math::aabb::*;
 use pvrlib::math::noise::*;
+use pvrlib::render::rendertarget::*;
 
 // ----------------------------------------------------------
 // module: gui
@@ -37,11 +38,6 @@ use voxel::voxel::VoxelBuffer;
 use voxel::dense::DenseBuffer;
 use voxel::sparse::SparseBuffer;
 use primitive::primitive::*;
-
-// ----------------------------------------------------------
-// module: rendertarget
-mod rendertarget;
-use rendertarget::RenderTarget;
 
 // ----------------------------------------------------------
 // module: camera

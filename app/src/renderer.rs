@@ -1,6 +1,7 @@
 // #todo-pvrlib: Move to pvrlib
 use pvrlib::math::vec3::*;
-use crate::rendertarget::*;
+use pvrlib::render::rendertarget::*;
+
 use crate::raymarcher::*;
 use crate::camera::*;
 use crate::scene::Scene;

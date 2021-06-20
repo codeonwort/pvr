@@ -4,7 +4,7 @@ use pvrlib::math::vec3::*;
 use std::marker::Sync;
 
 pub struct LightSample {
-    pub luminance: Vec3,
+    pub luminance: Vec3, // #todo-light: Luminance? not radiance?
     pub position: Vec3
 }
 
@@ -15,7 +15,7 @@ pub trait Light : Sync {
 
 pub struct PointLight {
     pub position: Vec3,
-    pub intensity: Vec3
+    pub intensity: Vec3 // #todo-light: What? Give it a physical meaning
 }
 
 impl Light for PointLight {
