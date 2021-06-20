@@ -15,6 +15,7 @@ use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, E
 // pvrlib package
 use pvrlib::math::vec3::*;
 use pvrlib::math::aabb::*;
+use pvrlib::math::noise::*;
 
 // ----------------------------------------------------------
 // module: gui
@@ -31,13 +32,11 @@ use volume::composite::CompositeVolume;
 // ----------------------------------------------------------
 // module: voxel, primitive
 mod voxel;
-mod noise;
 mod primitive;
 use voxel::voxel::VoxelBuffer;
 use voxel::dense::DenseBuffer;
 use voxel::sparse::SparseBuffer;
 use primitive::primitive::*;
-use noise::*;
 
 // ----------------------------------------------------------
 // module: rendertarget

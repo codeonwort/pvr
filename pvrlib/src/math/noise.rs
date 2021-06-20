@@ -1,4 +1,4 @@
-use pvrlib::math::vec3::*;
+use super::vec3::*;
 
 // Noise functions from https://www.shadertoy.com/view/4dS3Wd
 
@@ -12,7 +12,7 @@ fn hash(p: f32) -> f32 {
     p *= p + p;
     fract_glsl(p)
 }
-pub fn clamp(x: f32, x_min: f32, x_max: f32) -> f32 {
+fn clamp(x: f32, x_min: f32, x_max: f32) -> f32 {
     if x < x_min {
         x_min
     } else if x > x_max {
