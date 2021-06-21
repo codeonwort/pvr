@@ -11,6 +11,8 @@ use druid::widget::{Button, Flex, Label};
 use druid::{AppLauncher, Widget, WidgetExt, WindowDesc};
 use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, Env};
 
+use native_dialog::FileDialog;
+
 // ----------------------------------------------------------
 // pvrlib package
 use pvrlib::math::vec3::*;
@@ -174,6 +176,29 @@ fn main() {
 		.expect("Failed to launch app");
 }
 
+// #todo-gui: druid-shell complains about 'dropped message' like crazy while a dialog is open
+fn browse_save_path() -> Option<std::path::PathBuf> {
+	let cd = env::current_dir().unwrap();
+	let query = FileDialog::new()
+		.set_location(&cd)
+		.add_filter("PNG image", &["png"])
+		.show_save_single_file();
+	
+	let ret = match query {
+		Err(e) => {
+			println!("ERROR: Failed to open a file dialog: {}", e);
+			None
+		},
+		Ok(None) => {
+			println!("Save was cancelled");
+			None
+		}
+		Ok(Some(x)) => Some(x)
+	};
+
+	ret
+}
+
 fn ui_builder() -> impl Widget<AppState> {
 	let viewport = DruidViewport::new(IMAGE_WIDTH, IMAGE_HEIGHT)
 		.center();
@@ -198,14 +223,15 @@ fn ui_builder() -> impl Widget<AppState> {
 			}
 		})
 		.padding(5.0);
-	// #todo-gui: File browser (seems browse API is absent in std)
 	let save_button = Button::new("Save as PNG (wip)")
 		.on_click(|_ctx, data: &mut AppState, _env| {
 			let buffer = data.render_result.lock().unwrap();
 			if buffer.len() > 0 {
-				let filename = "saved.png";
-				print_rawbuffer(&buffer, IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32, filename);
-				println!("> Write the result to {}", filename);
+				if let Some(filename) = browse_save_path() {
+					let path = filename.to_str().unwrap();
+					print_rawbuffer(&buffer, IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32, path);
+					println!("> Write the result to {}", path);
+				}
 			} else {
 				println!("ERROR: No output has been generated");
 			}
