@@ -1,6 +1,6 @@
-use crate::volume::volume::*;
-use pvrlib::math::vec3::*;
-use pvrlib::math::ray::*;
+use super::*;
+use crate::math::vec3::*;
+use crate::math::ray::*;
 
 // todo-volume: Simple sphere for now
 pub struct ConstantVolume {

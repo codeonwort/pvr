@@ -1,5 +1,9 @@
-use pvrlib::math::vec3::Vec3;
-use pvrlib::math::ray::Ray;
+pub mod constant;
+pub mod voxel;
+pub mod composite;
+
+use crate::math::vec3::Vec3;
+use crate::math::ray::Ray;
 
 use std::marker::Sync;
 
@@ -19,7 +23,7 @@ pub trait Volume : Sync {
 }
 
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
-pub fn solve_quadratic(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
+fn solve_quadratic(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
     let det = (b * b) - (4.0 * a * c);
     if det < 0.0 {
         None

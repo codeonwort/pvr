@@ -22,18 +22,15 @@ use pvrlib::render::rendertarget::*;
 use pvrlib::voxelbuffer::VoxelBuffer;
 use pvrlib::voxelbuffer::dense::DenseBuffer;
 use pvrlib::voxelbuffer::sparse::SparseBuffer;
+use pvrlib::volume::*;
+use pvrlib::volume::voxel::*;
+use pvrlib::volume::constant::*;
+use pvrlib::volume::composite::*;
 
 // ----------------------------------------------------------
 // module: gui
 mod gui;
 use gui::viewport::DruidViewport;
-
-// ----------------------------------------------------------
-// module: volume
-mod volume;
-use volume::voxel::*;
-use volume::constant::ConstantVolume;
-use volume::composite::CompositeVolume;
 
 // ----------------------------------------------------------
 // module: primitive

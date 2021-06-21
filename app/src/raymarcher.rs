@@ -2,7 +2,7 @@
 use pvrlib::math::vec3::*;
 use pvrlib::math::ray::*;
 use pvrlib::light::*;
-use crate::volume::volume::*;
+use pvrlib::volume::*;
 
 pub struct IntegrationResult {
     pub luminance: Vec3,
