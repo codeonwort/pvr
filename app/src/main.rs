@@ -22,11 +22,11 @@ use pvrlib::render::rendertarget::*;
 use pvrlib::voxelbuffer::VoxelBuffer;
 use pvrlib::voxelbuffer::dense::DenseBuffer;
 use pvrlib::voxelbuffer::sparse::SparseBuffer;
-use pvrlib::volume::*;
 use pvrlib::volume::voxel::*;
 use pvrlib::volume::constant::*;
 use pvrlib::volume::composite::*;
 use pvrlib::scene::*;
+use pvrlib::render::renderer::*;
 
 // ----------------------------------------------------------
 // module: gui
@@ -37,11 +37,6 @@ use gui::viewport::DruidViewport;
 // module: primitive
 mod primitive;
 use primitive::primitive::*;
-
-// ----------------------------------------------------------
-// module: renderer
-mod renderer;
-use renderer::*;
 
 // ----------------------------------------------------------
 mod timer;
@@ -84,6 +79,38 @@ fn can_launch_render_job(current_state: RenderJobState) -> bool {
 pub const START_RENDER_TASK: Selector<u32> = Selector::new("start_render_task");
 pub const UPDATE_RENDER_PROGRESS: Selector<u32> = Selector::new("update_render_progress");
 pub const FINISH_RENDER_TASK: Selector<RenderTarget> = Selector::new("finish_render_task");
+
+struct RenderProgressWithDruid {
+    total: u32,
+    current: u32,
+    prev_percent: u32,
+    event_sink: Option<druid::ExtEventSink>
+}
+impl RenderProgressWithDruid {
+    pub fn new(event_sink: Option<druid::ExtEventSink>) -> Self {
+        RenderProgressWithDruid { total: 0, current: 0, prev_percent: 0, event_sink: event_sink }
+    }
+}
+impl RenderProgress for RenderProgressWithDruid {
+	fn set_total(&mut self, total: u32) {
+		self.total = total;
+	}
+	fn update(&mut self, append: u32) {
+        self.current += append;
+        
+        let ratio = (self.current as f32) / (self.total as f32);
+        let percent = 10 * ((10.0 * ratio) as u32);
+        if percent != self.prev_percent {
+            println!("progress: {} %", percent);
+            self.prev_percent = percent;
+            if let Some(_sink) = &self.event_sink {
+                _sink
+                    .submit_command(UPDATE_RENDER_PROGRESS, percent, None)
+                    .expect("Failed to submit: UPDATE_RENDER_PROGRESS");
+            }
+        }
+    }
+}
 
 struct Delegate {
 	event_sink: ExtEventSink
@@ -345,13 +372,15 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		exposure: EXPOSURE,
 		gamma: GAMMA_VALUE
 	};
-	let mut renderer = Renderer::new(render_settings, &mut rt);
 
 	let sink_clone = match &sink {
 		Some(_sink) => Some(_sink.clone()),
 		None => None
 	};
-	renderer.render(sink_clone, &camera, &scene);
+	let mut progress = Mutex::new(RenderProgressWithDruid::new(sink_clone));
+
+	let mut renderer = Renderer::new(render_settings, &mut rt, &mut progress);
+	renderer.render(&camera, &scene);
 
 	stopwatch.stop();
 

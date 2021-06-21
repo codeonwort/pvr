@@ -1,9 +1,8 @@
-// #todo-pvrlib: Move to pvrlib
-use pvrlib::math::vec3::*;
-use pvrlib::camera::*;
-use pvrlib::scene::Scene;
-use pvrlib::render::rendertarget::*;
-use pvrlib::render::raymarcher::*;
+use super::rendertarget::*;
+use super::raymarcher::*;
+use crate::math::vec3::*;
+use crate::camera::Camera;
+use crate::scene::Scene;
 
 use std::ops::Deref;
 use std::sync::*;
@@ -15,9 +14,16 @@ pub struct RenderSettings {
     pub gamma: f32
 }
 
+pub trait RenderProgress : Send {
+    fn set_total(&mut self, total: u32);
+    fn update(&mut self, append: u32);
+}
+
 pub struct Renderer<'a> {
     settings: RenderSettings,
-    render_target: &'a mut RenderTarget
+    render_target: &'a mut RenderTarget,
+    // #todo: Still uncomfortable with this borrow-shit... Is it a proper way?
+    progress: &'a mut Mutex<dyn RenderProgress>
 }
 
 struct RenderRegion {
@@ -28,40 +34,13 @@ struct RenderRegion {
     pub data: Vec<Vec3>
 }
 
-struct Progress {
-    total: u32,
-    current: u32,
-    prev_percent: u32,
-    event_sink: Option<druid::ExtEventSink>
-}
-impl Progress {
-    pub fn new(total: u32, event_sink: Option<druid::ExtEventSink>) -> Progress {
-        Progress { total: total, current: 0, prev_percent: 0, event_sink: event_sink }
-    }
-    pub fn update(&mut self, append: u32) {
-        self.current += append;
-        
-        let ratio = (self.current as f32) / (self.total as f32);
-        let percent = 10 * ((10.0 * ratio) as u32);
-        if percent != self.prev_percent {
-            println!("progress: {} %", percent);
-            self.prev_percent = percent;
-            if let Some(_sink) = &self.event_sink {
-                _sink
-                    .submit_command(super::UPDATE_RENDER_PROGRESS, percent, None)
-                    .expect("Failed to submit: UPDATE_RENDER_PROGRESS");
-            }
-        }
-    }
-}
-
 impl Renderer<'_> {
 
-    pub fn new(settings: RenderSettings, render_target: &mut RenderTarget) -> Renderer {
-        Renderer { settings: settings, render_target: render_target }
+    pub fn new<'a>(settings: RenderSettings, render_target: &'a mut RenderTarget, progress: &'a mut Mutex<dyn RenderProgress>) -> Renderer<'a> {
+        Renderer { settings: settings, render_target: render_target, progress: progress }
     }
 
-    pub fn render(&mut self, event_sink: Option<druid::ExtEventSink>, camera: &Camera, scene: &Scene) {
+    pub fn render(&mut self, camera: &Camera, scene: &Scene) {
         let width = self.render_target.get_width();
         let height = self.render_target.get_height();
         let inv_width = 1.0 / (width as f32);
@@ -94,7 +73,8 @@ impl Renderer<'_> {
 
         // Raymarching
         let total_pixels = width * height;
-        let progress = Mutex::new(Progress::new(total_pixels as u32, event_sink));
+        self.progress.lock().unwrap().set_total(total_pixels as u32);
+        //let progress = Mutex::new(&self.progress);
         regions.par_iter_mut().for_each(|r| {
             // Render a subregion
             for y in r.y0 .. r.y1 {
@@ -119,7 +99,7 @@ impl Renderer<'_> {
                 }
             }
             // Update overall progress
-            progress.lock().unwrap().update(((r.x1 - r.x0) * (r.y1 - r.y0)) as u32);
+            self.progress.lock().unwrap().update(((r.x1 - r.x0) * (r.y1 - r.y0)) as u32);
         });
 
         // Copy subregions to the final render target (This is really unncessary work...)
