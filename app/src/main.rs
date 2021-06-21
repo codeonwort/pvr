@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::env;
 
 use druid::widget::{Button, Flex, Label};
-use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
+use druid::{AppLauncher, Widget, WidgetExt, WindowDesc};
 use druid::{AppDelegate, DelegateCtx, ExtEventSink, Selector, Target, Command, Env};
 
 // ----------------------------------------------------------
@@ -226,6 +226,8 @@ fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
     out_file.sync_all().unwrap();
 }
 
+// #todo: Move to unit test
+#[allow(dead_code)]
 fn noise_test(rt: &mut RenderTarget) {
 	let width = rt.get_width();
 	let height = rt.get_height();
@@ -251,6 +253,8 @@ fn noise_test(rt: &mut RenderTarget) {
 	}
 }
 
+// #todo: Move to unit test
+#[allow(dead_code)]
 fn test_sparse_buffer() {
 	println!("=== TEST SPARSE BUFFER ===");
 	let bounds = AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) };

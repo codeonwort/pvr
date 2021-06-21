@@ -28,10 +28,10 @@ impl Volume for ConstantVolume {
     fn absorption(&self, p: Vec3) -> Vec3 {
         if self.contains(p) { self.absorption_coeff } else { Vec3::zero() }
     }
-    fn scattering(&self, p: Vec3) -> Vec3 {
+    fn scattering(&self, _p: Vec3) -> Vec3 {
         Vec3::one()
     }
-    fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
+    fn phase_function(&self, p: Vec3, _wi: Vec3, _wo: Vec3) -> f32 {
         if self.contains(p) {
             ISOMORPHIC_PHASE_FN
         } else {

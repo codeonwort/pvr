@@ -20,7 +20,7 @@ pub struct PointLight {
 }
 
 impl Light for PointLight {
-    fn sample(&self, ray_position: Vec3, ray_direction: Vec3) -> LightSample {
+    fn sample(&self, ray_position: Vec3, _ray_direction: Vec3) -> LightSample {
         let len_sq = (ray_position - self.position).length_sq();
 
         if len_sq < 1.0 {

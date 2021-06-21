@@ -8,9 +8,9 @@ pub struct Camera {
     horizontal: Vec3,
     vertical: Vec3,
     // basis
-    u: Vec3,
-    v: Vec3,
-    w: Vec3,
+    _u: Vec3,
+    _v: Vec3,
+    _w: Vec3,
 }
 
 impl Camera {
@@ -31,7 +31,7 @@ impl Camera {
             top_left: top_left,
             horizontal: horizontal,
             vertical: vertical,
-            u: u, v: v, w: w }
+            _u: u, _v: v, _w: w }
     }
 
     pub fn get_ray(&self, s: f32, t: f32) -> Ray {
