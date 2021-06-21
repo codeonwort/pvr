@@ -39,10 +39,6 @@ mod primitive;
 use primitive::primitive::*;
 
 // ----------------------------------------------------------
-// module: raymarcher
-mod raymarcher;
-
-// ----------------------------------------------------------
 // module: renderer
 mod renderer;
 use renderer::*;

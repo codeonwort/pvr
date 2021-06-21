@@ -1,8 +1,7 @@
-// #todo-pvrlib: Move to pvrlib
-use pvrlib::math::vec3::*;
-use pvrlib::math::ray::*;
-use pvrlib::light::*;
-use pvrlib::volume::*;
+use crate::math::vec3::*;
+use crate::math::ray::*;
+use crate::light::*;
+use crate::volume::*;
 
 pub struct IntegrationResult {
     pub luminance: Vec3,
