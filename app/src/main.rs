@@ -26,6 +26,7 @@ use pvrlib::volume::*;
 use pvrlib::volume::voxel::*;
 use pvrlib::volume::constant::*;
 use pvrlib::volume::composite::*;
+use pvrlib::scene::*;
 
 // ----------------------------------------------------------
 // module: gui
@@ -42,10 +43,8 @@ use primitive::primitive::*;
 mod raymarcher;
 
 // ----------------------------------------------------------
-// module: scene, renderer
-mod scene;
+// module: renderer
 mod renderer;
-use scene::*;
 use renderer::*;
 
 // ----------------------------------------------------------
