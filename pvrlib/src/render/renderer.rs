@@ -74,7 +74,7 @@ impl Renderer<'_> {
         // Raymarching
         let total_pixels = width * height;
         self.progress.lock().unwrap().set_total(total_pixels as u32);
-        //let progress = Mutex::new(&self.progress);
+        
         regions.par_iter_mut().for_each(|r| {
             // Render a subregion
             for y in r.y0 .. r.y1 {

@@ -1,8 +1,8 @@
-use pvrlib::math::vec3::*;
-use pvrlib::voxelbuffer::VoxelBuffer;
-use crate::primitive::primitive::*;
+use crate::math::vec3::*;
+use crate::primitive::*;
+use crate::voxelbuffer::VoxelBuffer;
 
-use pvrlib::math::noise::*; // pyroclastic test
+use crate::math::noise::*; // pyroclastic test
 
 pub struct PyroclasticPoint {
     pub center: Vec3,

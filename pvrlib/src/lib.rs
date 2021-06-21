@@ -3,6 +3,7 @@ pub mod light;
 pub mod camera;
 pub mod scene;
 pub mod voxelbuffer;
+pub mod primitive;
 pub mod volume;
 pub mod render;
 

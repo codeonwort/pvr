@@ -1,4 +1,6 @@
-use pvrlib::voxelbuffer::VoxelBuffer;
+pub mod rast;
+
+use crate::voxelbuffer::VoxelBuffer;
 
 // #todo: Needs Geometry trait
 pub trait Primitive {

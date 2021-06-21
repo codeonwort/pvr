@@ -18,6 +18,7 @@ use pvrlib::math::aabb::*;
 use pvrlib::math::noise::*;
 use pvrlib::light::*;
 use pvrlib::camera::*;
+use pvrlib::scene::*;
 use pvrlib::render::rendertarget::*;
 use pvrlib::voxelbuffer::VoxelBuffer;
 use pvrlib::voxelbuffer::dense::DenseBuffer;
@@ -25,21 +26,15 @@ use pvrlib::voxelbuffer::sparse::SparseBuffer;
 use pvrlib::volume::voxel::*;
 use pvrlib::volume::constant::*;
 use pvrlib::volume::composite::*;
-use pvrlib::scene::*;
+use pvrlib::primitive::*;
+use pvrlib::primitive::rast::*;
 use pvrlib::render::renderer::*;
 
 // ----------------------------------------------------------
-// module: gui
+// module: gui, timer
 mod gui;
-use gui::viewport::DruidViewport;
-
-// ----------------------------------------------------------
-// module: primitive
-mod primitive;
-use primitive::primitive::*;
-
-// ----------------------------------------------------------
 mod timer;
+use gui::viewport::DruidViewport;
 use timer::Stopwatch;
 
 // ----------------------------------------------------------
@@ -323,13 +318,13 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		absorption_coeff: vec3(0.75, 0.92, 0.72)
 	};
 
-	let point_prim = primitive::rast::pyroclastic_point::PyroclasticPoint {
+	let point_prim = pyroclastic_point::PyroclasticPoint {
 		center: vec3(0.0, 0.0, 0.0),
 		radius: 8.0
 	};
 	point_prim.rasterize(voxel_volume.get_buffer());
 
-	let line_prim = primitive::rast::line::Line {
+	let line_prim = line::Line {
 		p0: vec3(-20.0, 10.0, 0.0),
 		p1: vec3(20.0, 10.0, 0.0),
 		radius: 4.0

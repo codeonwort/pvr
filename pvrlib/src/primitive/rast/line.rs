@@ -1,6 +1,6 @@
-use pvrlib::math::vec3::*;
-use pvrlib::voxelbuffer::VoxelBuffer;
-use crate::primitive::primitive::*;
+use crate::math::vec3::*;
+use crate::primitive::*;
+use crate::voxelbuffer::VoxelBuffer;
 
 pub struct Line {
 	pub	p0: Vec3,
