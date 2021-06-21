@@ -45,7 +45,7 @@ const WINDOW_HEIGHT: f64 = 768.0;
 
 const IMAGE_WIDTH: usize = 512;
 const IMAGE_HEIGHT: usize = 512;
-const FILENAME: &str = "test.png";
+const FILENAME: &str = "output.png";
 
 const GAMMA_VALUE: f32 = 2.2;
 const FOV_Y: f32 = 45.0;
@@ -194,20 +194,29 @@ fn ui_builder() -> impl Widget<AppState> {
 				let cmd = Command::new(START_RENDER_TASK, 0);
 				_ctx.submit_command(cmd, None);
 			} else {
-				println!("Renderer is already busy (caught in button widget)");
+				println!("ERROR: Renderer is already busy (caught in button widget)");
 			}
 		})
 		.padding(5.0);
 	// #todo-gui: File browser (seems browse API is absent in std)
-	//let save_button = Button::new("Save as PNG (wip)")
-	//	.on_click(|_ctx, data: &mut AppState, _env| { /* todo */ })
-	//	.padding(5.0);
+	let save_button = Button::new("Save as PNG (wip)")
+		.on_click(|_ctx, data: &mut AppState, _env| {
+			let buffer = data.render_result.lock().unwrap();
+			if buffer.len() > 0 {
+				let filename = "saved.png";
+				print_rawbuffer(&buffer, IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32, filename);
+				println!("> Write the result to {}", filename);
+			} else {
+				println!("ERROR: No output has been generated");
+			}
+		})
+		.padding(5.0);
 
 	let mut col = Flex::column();
 	col.add_flex_child(viewport, 1.0);
 	col.add_child(label);
 	col.add_child(render_button);
-	//col.add_child(save_button);
+	col.add_child(save_button);
 
 	col
 }
@@ -223,6 +232,14 @@ fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
 
 	encoder.encode(&buffer, width, height, color_type).unwrap();
 
+    out_file.sync_all().unwrap();
+}
+
+fn print_rawbuffer(buffer: &Vec<u8>, width: u32, height: u32, filepath: &str) {
+	let out_file = File::create(filepath).unwrap();
+	let encoder = PngEncoder::new(&out_file);
+	let color_type: ColorType = ColorType::Rgb8;
+	encoder.encode(&buffer, width, height, color_type).unwrap();
     out_file.sync_all().unwrap();
 }
 
@@ -328,10 +345,11 @@ fn begin_render(sink: Option<ExtEventSink>) {
 	};
 	point_prim.rasterize(voxel_volume.get_buffer());
 
+	// #todo-line
 	let line_prim = line::Line {
 		p0: vec3(-20.0, 10.0, 0.0),
 		p1: vec3(20.0, 10.0, 0.0),
-		radius: 4.0
+		radius: 1.0
 	};
 	line_prim.rasterize(voxel_volume.get_buffer());
 
@@ -386,7 +404,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 	// Comment out rasterization and rendering to test noise
 	//noise_test(&mut rt);
 	
-	println!("> Printing the image to {}", FILENAME);
+	println!("> Write the result to {}", FILENAME);
 
 	print_rendertarget(&rt, FILENAME);
 

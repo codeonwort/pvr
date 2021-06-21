@@ -8,7 +8,6 @@ pub struct IntegrationResult {
     pub transmittance: Vec3
 }
 
-// #todo: Replace vol with voxel buffer for now
 // #todo: UniformRaymarcher, AdaptiveRaymarcher
 #[allow(non_snake_case)]
 pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> IntegrationResult {
