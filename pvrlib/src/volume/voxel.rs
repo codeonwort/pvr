@@ -1,10 +1,12 @@
 use super::*;
 use crate::math::vec3::*;
 use crate::math::ray::*;
+use crate::phasefn::PhaseFunction;
 use crate::voxelbuffer::VoxelBuffer;
 
 pub struct VoxelVolume {
     pub buffer: Box<dyn VoxelBuffer>,
+    pub phase_fn: Box<dyn PhaseFunction>,
 
     // temp
     pub emission_value: Vec3,
@@ -27,16 +29,16 @@ impl Volume for VoxelVolume {
     fn scattering(&self, p: Vec3) -> Vec3 {
         self.buffer.sample_by_world_position(p)
     }
+
+    fn set_phase_function(&mut self, phase_fn: Box<dyn PhaseFunction>) {
+        self.phase_fn = phase_fn;
+    }
     fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
         // WTF logic for composite volume
         let den = self.buffer.sample_by_world_position(p).max_component();
-
-        let t = wi & wo;
-        let g = 0.76;
-        
-        den * ISOMORPHIC_PHASE_FN * (1.0 - g * g) /
-            (1.0 + g * g - 2.0 * g * t).powf(1.5)
+        den * self.phase_fn.probability(wi, wo)
     }
+
     fn get_intersection(&self, ray: Ray) -> Vec<(f32, f32)> {
         let mut intervals = Vec::new();
         if let Some(v) = self.buffer.get_ws_bounds().intersect(ray) {
