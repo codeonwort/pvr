@@ -362,7 +362,8 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
 	let mut voxel_volume = VoxelVolume {
 		buffer: Box::new(voxel_buffer),
-		phase_fn: Box::new(HenyeyGreenstein{g: 0.76}),
+		//phase_fn: Box::new(HenyeyGreenstein{g: 0.76}),
+		phase_fn: Box::new(DoubleHenyeyGreenstein{g1: 0.76, g2: -0.5, b: 0.2}),
 		emission_value: vec3(0.0, 0.0, 0.0),
 		absorption_coeff: vec3(0.75, 0.92, 0.72)
 	};
