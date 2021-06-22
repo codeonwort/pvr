@@ -44,8 +44,9 @@ impl Volume for CompositeVolume {
         // #todo-phase: What to do here?
         println!("WARNING: set_phase_fn() on CompositeVolume won't do nothing");
     }
-    // #todo: This assumes no overlap between child volumes.
     fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
+        // #todo-phase: Assumes no overlap between child volumes.
+        // Need to introduce weight per phase fn.
         let mut total_p = 0.0;
         for child in &self.children {
             total_p += child.phase_function(p, wi, wo);
