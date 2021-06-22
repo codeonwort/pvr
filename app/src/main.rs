@@ -21,7 +21,7 @@ use pvrlib::math::noise::*;
 use pvrlib::light::*;
 use pvrlib::camera::*;
 use pvrlib::scene::*;
-use pvrlib::render::rendertarget::*;
+use pvrlib::phasefn::*;
 use pvrlib::voxelbuffer::VoxelBuffer;
 use pvrlib::voxelbuffer::dense::DenseBuffer;
 use pvrlib::voxelbuffer::sparse::SparseBuffer;
@@ -30,6 +30,7 @@ use pvrlib::volume::constant::*;
 use pvrlib::volume::composite::*;
 use pvrlib::primitive::*;
 use pvrlib::primitive::rast::*;
+use pvrlib::render::rendertarget::*;
 use pvrlib::render::renderer::*;
 
 // ----------------------------------------------------------
@@ -361,6 +362,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
 	let mut voxel_volume = VoxelVolume {
 		buffer: Box::new(voxel_buffer),
+		phase_fn: Box::new(HenyeyGreenstein{g: 0.76}),
 		emission_value: vec3(0.0, 0.0, 0.0),
 		absorption_coeff: vec3(0.75, 0.92, 0.72)
 	};
@@ -384,7 +386,11 @@ fn begin_render(sink: Option<ExtEventSink>) {
 	stopwatch.stop();
 
 	let constant_volume = ConstantVolume::new(
-		vec3(-10.0, 0.0, 0.0), 2.0, vec3(0.02, 0.02, 0.02), vec3(0.76, 0.65, 0.95));
+		vec3(-10.0, 0.0, 0.0),  // center
+		2.0,                    // radius
+		vec3(0.02, 0.02, 0.02), // emission
+		vec3(0.76, 0.65, 0.95), // absorption
+		Box::new(Isotropic{})); // phaseFn
 
 	let scene = Scene {
 		volume: Box::new(CompositeVolume {

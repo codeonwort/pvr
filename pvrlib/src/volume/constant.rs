@@ -1,6 +1,7 @@
 use super::*;
 use crate::math::vec3::*;
 use crate::math::ray::*;
+use crate::phasefn::PhaseFunction;
 
 // todo-volume: Simple sphere for now
 pub struct ConstantVolume {
@@ -8,12 +9,20 @@ pub struct ConstantVolume {
     radius: f32,
 
     emission_value: Vec3,
-    absorption_coeff: Vec3
+    absorption_coeff: Vec3,
+
+    phase_fn: Box<dyn PhaseFunction>
 }
 
 impl ConstantVolume {
-    pub fn new(center: Vec3, radius: f32, emission: Vec3, absorption: Vec3) -> ConstantVolume {
-        ConstantVolume { center: center, radius: radius, emission_value: emission, absorption_coeff: absorption }
+    pub fn new(center: Vec3, radius: f32, emission: Vec3, absorption: Vec3, phase_fn: Box<dyn PhaseFunction>) -> ConstantVolume {
+        ConstantVolume {
+            center: center,
+            radius: radius,
+            emission_value: emission,
+            absorption_coeff: absorption,
+            phase_fn: phase_fn
+        }
     }
 
     fn contains(&self, p: Vec3) -> bool {
@@ -31,13 +40,18 @@ impl Volume for ConstantVolume {
     fn scattering(&self, _p: Vec3) -> Vec3 {
         Vec3::one()
     }
-    fn phase_function(&self, p: Vec3, _wi: Vec3, _wo: Vec3) -> f32 {
+
+    fn set_phase_function(&mut self, phase_fn: Box<dyn PhaseFunction>) {
+        self.phase_fn = phase_fn;
+    }
+    fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
         if self.contains(p) {
-            ISOMORPHIC_PHASE_FN
+            self.phase_fn.probability(wi, wo)
         } else {
             0.0
         }
     }
+
     fn get_intersection(&self, ray: Ray) -> Vec<(f32, f32)> {
         let delta = ray.o - self.center;
         let a = ray.d & ray.d;

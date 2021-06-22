@@ -1,6 +1,7 @@
 use super::Volume;
 use crate::math::vec3::*;
 use crate::math::ray::*;
+use crate::phasefn::PhaseFunction;
 
 pub struct CompositeVolume {
     pub children: Vec<Box<dyn Volume>>
@@ -39,6 +40,10 @@ impl Volume for CompositeVolume {
         total_scattering
     }
 
+    fn set_phase_function(&mut self, _phase_fn: Box<dyn PhaseFunction>) {
+        // #todo-phase: What to do here?
+        println!("WARNING: set_phase_fn() on CompositeVolume won't do nothing");
+    }
     // #todo: This assumes no overlap between child volumes.
     fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
         let mut total_p = 0.0;

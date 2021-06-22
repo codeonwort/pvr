@@ -1,5 +1,6 @@
 pub mod math;
 pub mod light;
+pub mod phasefn;
 pub mod camera;
 pub mod scene;
 pub mod voxelbuffer;
