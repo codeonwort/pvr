@@ -3,6 +3,7 @@ pub mod sparse;
 
 use crate::math::vec3::Vec3;
 use crate::math::aabb::AABB;
+use crate::math::ray::Ray;
 
 use std::marker::Sync;
 
@@ -18,6 +19,9 @@ pub trait VoxelBuffer : Sync {
 
 	// #todo: Shouldn't this be in VoxelVolume?
 	fn get_ws_bounds(&self) -> AABB;
+
+	// List of (t_min, t_max) of the ray
+	fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)>;
 
 	fn get_occupancy(&self) -> f32; // (min=0.0, max=1.0) How many voxels have been materialized?
 

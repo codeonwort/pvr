@@ -52,7 +52,7 @@ impl Volume for ConstantVolume {
         }
     }
 
-    fn get_intersection(&self, ray: Ray) -> Vec<(f32, f32)> {
+    fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
         let delta = ray.o - self.center;
         let a = ray.d & ray.d;
         let b = 2.0 * (ray.d & delta);

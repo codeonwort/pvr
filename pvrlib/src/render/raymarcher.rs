@@ -15,7 +15,7 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 	let step_size: f32 = 1.0;
 
 	// Integration bounds
-	let intervals = vol.get_intersection(ray);
+	let intervals = vol.find_intersections(ray);
 	
 	let mut T: Vec3 = Vec3::one(); // total transmittance
 	let mut L: Vec3 = Vec3::zero(); // total luminance
@@ -44,7 +44,7 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 					let mut t_L = 0.0;
 
 					let mut t_L_end = (light_sample.position - p_i).length();
-					for (_, t_L_end2) in vol.get_intersection(Ray::new(p_i, wi)) {
+					for (_, t_L_end2) in vol.find_intersections(Ray::new(p_i, wi)) {
 						t_L_end = if t_L_end2 < t_L_end { t_L_end2 } else { t_L_end };
 					}
 

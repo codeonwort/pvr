@@ -17,7 +17,8 @@ pub trait Volume : Sync {
     fn set_phase_function(&mut self, phase_fn: Box<dyn PhaseFunction>);
     fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32;
 
-    fn get_intersection(&self, ray: Ray) -> Vec<(f32, f32)>; // (t_min, t_max) of the ray
+    // Return valid intervals to raymarch given a ray
+    fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)>; // (t_min, t_max) of the ray
 
 }
 

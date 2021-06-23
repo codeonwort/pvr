@@ -34,17 +34,12 @@ impl Volume for VoxelVolume {
         self.phase_fn = phase_fn;
     }
     fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
-        // WTF logic for composite volume
+        // #todo-phase: WTF logic for composite volume
         let den = self.buffer.sample_by_world_position(p).max_component();
         den * self.phase_fn.probability(wi, wo)
     }
 
-    fn get_intersection(&self, ray: Ray) -> Vec<(f32, f32)> {
-        let mut intervals = Vec::new();
-        if let Some(v) = self.buffer.get_ws_bounds().intersect(ray) {
-            intervals.push(v);
-        }
-
-        intervals
+    fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
+        self.buffer.find_intersections(ray)
     }
 }

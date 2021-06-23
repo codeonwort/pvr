@@ -55,10 +55,10 @@ impl Volume for CompositeVolume {
         total_p
     }
 
-    fn get_intersection(&self, ray: Ray) -> Vec<(f32, f32)> {
+    fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
         let mut intervals = Vec::new();
         for child in &self.children {
-            intervals.append(&mut child.get_intersection(ray));
+            intervals.append(&mut child.find_intersections(ray));
         }
 
         intervals
