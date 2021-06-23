@@ -293,6 +293,9 @@ impl VoxelBuffer for SparseBuffer {
 	}
 
 	// #todo-emptyspace: Slow as hell
+	// Each read() needs to traverse the hierarchy from the root,
+	// but we identified which leaf is hit with each interval.
+	// Access to those leaves should be cached, not just the intervals.
 	fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
 		fn to_vec3(iv: (i32, i32, i32)) -> Vec3 {
 			vec3(iv.0 as f32, iv.1 as f32, iv.2 as f32)
@@ -328,6 +331,7 @@ impl VoxelBuffer for SparseBuffer {
 
 		intervals.sort_by(|(t0,_t1), (s0,_s1)| t0.partial_cmp(s0).unwrap());
 		
+		// #todo-emptyspace: To cache the leaves, we should not merge the intervals.
 		// Merge consecutive intervals
 		let n = intervals.len();
 		let mut merged: Vec<(f32, f32)> = Vec::new();
