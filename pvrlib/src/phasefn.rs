@@ -5,7 +5,7 @@ pub const ISOTROPIC_PHASE_FN: f32 = 1.0 / (4.0 * std::f32::consts::PI);
 
 // #todo-phase: PhaseFunction could be an enum to avoid heap allocation and vtable,
 // more performant less flexible. Can't decide which will be better, but switching
-// between 
+// between them will be not that hard.
 // Scattering prob. given incoming and outgoing directions.
 pub trait PhaseFunction : Sync {
     fn probability(&self, wi: Vec3, wo: Vec3) -> f32;

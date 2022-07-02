@@ -1,6 +1,7 @@
 use super::VoxelBuffer;
 use crate::math::vec3::*;
 use crate::math::aabb::*;
+use crate::math::ray::Ray;
 
 pub struct DenseBuffer {
 	size_x: i32,
@@ -101,6 +102,25 @@ impl VoxelBuffer for DenseBuffer {
 	}
 	fn get_ws_bounds(&self) -> AABB {
 		self.ws_bounds
+	}
+
+	// #todo-emptyspace: Any way to skip empty spaces for dense buffer?
+	// Keep internal sparse buffer only to find intersections?
+	fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
+		let mut intervals = Vec::new();
+        if let Some(v) = self.ws_bounds.intersect(ray) {
+            intervals.push(v);
+        }
+
+		// #todo-emptyspace: Negative numbers and NaN ???
+		//if intervals.len() > 0 {
+		//	println!("=== dense intervals ===");
+		//	for (t0,t1) in &intervals {
+		//		println!("{}, {}", t0, t1);
+		//	}
+		//}
+
+        intervals
 	}
 
 	fn get_occupancy(&self) -> f32 { 1.0 }

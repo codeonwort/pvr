@@ -357,6 +357,8 @@ fn begin_render(sink: Option<ExtEventSink>) {
 
 	stopwatch.start("rasterization");
 
+	// #todo-emptyspace: Sparse buffer is 20x times slower
+	//let voxel_buffer = SparseBuffer::new(
 	let voxel_buffer = DenseBuffer::new(
 		VOXEL_RESOLUTION,
 		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });

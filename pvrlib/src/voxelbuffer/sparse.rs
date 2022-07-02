@@ -1,6 +1,7 @@
 use super::VoxelBuffer;
 use crate::math::aabb::*;
 use crate::math::vec3::*;
+use crate::math::ray::Ray;
 
 // -------------------------------------
 // Auxiliary for sparse buffer impl.
@@ -16,11 +17,11 @@ enum Octree {
 struct TreeBranch {
 	min_bounds: (i32, i32, i32), // inclusive
 	max_bounds: (i32, i32, i32), // exclusive
-	children: [Octree; 8] // index = z | y | x
+	pub children: [Octree; 8] // index = z | y | x
 }
 
 struct TreeLeaf {
-	pub coord: (i32, i32, i32),
+	pub coord: (i32, i32, i32), // min bounds
 	pub size: (i32, i32, i32),
 	data: Vec<Vec3>
 }
@@ -291,6 +292,81 @@ impl VoxelBuffer for SparseBuffer {
 		self.ws_bounds
 	}
 
+	// #todo-emptyspace: Slow as hell
+	// Each read() needs to traverse the hierarchy from the root,
+	// but we identified which leaf is hit with each interval.
+	// Access to those leaves should be cached, not just the intervals.
+	fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
+		fn to_vec3(iv: (i32, i32, i32)) -> Vec3 {
+			vec3(iv.0 as f32, iv.1 as f32, iv.2 as f32)
+		}
+		fn recurse(node: &Octree, intervals: &mut Vec<(f32, f32)>, ray: Ray) {
+			match node {
+				Octree::Empty => {
+					return;
+				},
+				Octree::Branch(branch) => {
+					for i in 0..8 {
+						recurse(&branch.children[i], intervals, ray);
+					}
+				},
+				Octree::Leaf(leaf) => {
+					let aabb = AABB {
+						min: to_vec3(leaf.coord),
+						max: to_vec3(leaf.coord) + to_vec3(leaf.size)
+					};
+					match aabb.intersect(ray) {
+						Some(interval) => {
+							intervals.push(interval);
+						},
+						None => {}
+					}
+				}
+			}
+		}
+
+		let mut intervals: Vec<(f32, f32)> = Vec::new();
+		let ray2 = Ray::new(self.world_to_voxel(ray.o), ray.d);
+		recurse(&self.root, &mut intervals, ray2);
+
+		intervals.sort_by(|(t0,_t1), (s0,_s1)| t0.partial_cmp(s0).unwrap());
+		
+		// #todo-emptyspace: To cache the leaves, we should not merge the intervals.
+		// Merge consecutive intervals
+		let n = intervals.len();
+		let mut merged: Vec<(f32, f32)> = Vec::new();
+		if n > 0 {
+			let mut p = 0;
+			let mut q = 0;
+			while p < n {
+				q = p;
+				while q + 1 < n {
+					if intervals[q].1 + (1e-6) >= intervals[q + 1].0 {
+						q += 1;
+					} else {
+						break;
+					}
+				}
+				merged.push((intervals[p].0, intervals[q].1));
+				p = q + 1;
+			}
+		}
+
+		//if intervals.len() > 0 {
+		//	println!("=== sparse intervals ===");
+		//	println!("original");
+		//	for (t0,t1) in &intervals {
+		//		println!("{}, {}", t0, t1);
+		//	}
+		//	println!("merged");
+		//	for (t0,t1) in &merged {
+		//		println!("{}, {}", t0, t1);
+		//	}
+		//}
+
+        merged
+	}
+
 	fn get_occupancy(&self) -> f32 {
 		let total_voxels = self.size.0 * self.size.1 * self.size.2;
 		self.get_occupancy_recurse(&self.root, total_voxels)
@@ -304,7 +380,7 @@ impl VoxelBuffer for SparseBuffer {
 		}
 	}
 	fn write(&mut self, i: i32, j: i32, k: i32, value: Vec3) {
-		// Nested here because of some shitty error that self cannot be burrowed as mutable twice :/
+		// Nested here because of some shitty error that self cannot be borrowed as mutable twice
 		fn recurse(mut node: &mut Octree, v: Vec3, p: (i32, i32, i32), min: (i32, i32, i32), max: (i32, i32, i32)) {
 			match node {
 				Octree::Empty => {
