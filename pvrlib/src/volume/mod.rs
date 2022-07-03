@@ -4,6 +4,7 @@ pub mod composite;
 
 use crate::math::vec3::Vec3;
 use crate::math::ray::Ray;
+use crate::math::aabb::AABB;
 use crate::phasefn::PhaseFunction;
 
 use std::marker::Sync;
@@ -42,6 +43,7 @@ pub trait Volume : Sync {
     // Return valid intervals to raymarch given a ray
     fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)>; // (t_min, t_max) of the ray
 
+    fn world_bounds(&self) -> AABB;
 }
 
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection

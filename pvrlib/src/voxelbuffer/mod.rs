@@ -18,7 +18,7 @@ pub trait VoxelBuffer : Sync {
 	fn get_size(&self) -> (i32, i32, i32);
 	fn get_sizef(&self) -> Vec3;
 
-	// #todo-refactor: Shouldn't this be in VoxelVolume?
+	// #todo-refactor: Remove this and use VoxelVolume::world_bounds
 	fn get_ws_bounds(&self) -> AABB;
 
 	// List of (t_min, t_max) of the ray

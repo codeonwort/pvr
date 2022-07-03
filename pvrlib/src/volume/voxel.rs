@@ -1,6 +1,7 @@
 use super::*;
 use crate::math::vec3::*;
 use crate::math::ray::*;
+use crate::math::aabb::AABB;
 use crate::phasefn::PhaseFunction;
 use crate::voxelbuffer::VoxelBuffer;
 
@@ -14,6 +15,7 @@ pub struct VoxelVolume {
 
     // #todo-refactor: transform for VoxelVolume
     // pub transform: Transform
+    pub world_bounds: AABB
 }
 
 impl VoxelVolume {
@@ -51,5 +53,8 @@ impl Volume for VoxelVolume {
 
     fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
         self.buffer.find_intersections(ray)
+    }
+    fn world_bounds(&self) -> AABB {
+        self.world_bounds
     }
 }

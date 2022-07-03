@@ -50,13 +50,21 @@ impl Vec3 {
     pub fn zero() -> Vec3 { Vec3::new(0.0, 0.0, 0.0) }
     pub fn one() -> Vec3 { Vec3::new(1.0, 1.0, 1.0) }
 
+    // Static methods
     pub fn distance(a: Vec3, b: Vec3) -> f32 {
         (a - b).length()
     }
     pub fn distance_sq(a: Vec3, b: Vec3) -> f32 {
         (a - b).length_sq()
     }
+    pub fn min(a: Vec3, b: Vec3) -> Vec3 {
+        Vec3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z))
+    }
+    pub fn max(a: Vec3, b: Vec3) -> Vec3 {
+        Vec3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z))
+    }
 
+    // Member methods
     pub fn dot(&self, rhs: Vec3) -> f32 {
         (*self) & rhs
     }

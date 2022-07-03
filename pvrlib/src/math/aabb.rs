@@ -15,9 +15,11 @@ impl AABB {
     pub fn size(&self) -> Vec3 {
         self.max - self.min
     }
+    // Extent
     pub fn half_size(&self) -> Vec3 {
         0.5 * (self.max - self.min)
     }
+    // (ray_t_min, ray_t_max)
     pub fn intersect(&self, ray: Ray) -> Option<(f32, f32)> {
         let mut t_near = -std::f32::MAX;
         let mut t_far = std::f32::MAX;
@@ -42,5 +44,12 @@ impl AABB {
         }
 
         Some((t_near, t_far))
+    }
+    // Minimum bounds that encompasses original AABBs
+    pub fn extend(&self, other: AABB) -> AABB {
+        AABB {
+            min: Vec3::min(self.min, other.min),
+            max: Vec3::max(self.max, other.max)
+        }
     }
 }

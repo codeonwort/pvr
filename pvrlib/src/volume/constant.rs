@@ -95,6 +95,7 @@ impl Volume for ConstantVolume {
         }
     }
 
+    // #todo-refactor: Only valid for sphere shape. Needs aabb-ray test for box shape.
     fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
         let delta = ray.o - self.center;
         let a = ray.d & ray.d;
@@ -107,5 +108,13 @@ impl Volume for ConstantVolume {
         }
 
         intervals
+    }
+
+    fn world_bounds(&self) -> AABB {
+        let r = Vec3::new(self.radius, self.radius, self.radius);
+        AABB {
+            min: self.center - r,
+            max: self.center + r
+        }
     }
 }

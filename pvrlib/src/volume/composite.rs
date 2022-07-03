@@ -2,6 +2,7 @@ use super::Volume;
 use super::VolumeSample;
 use crate::math::vec3::*;
 use crate::math::ray::*;
+use crate::math::aabb::AABB;
 use crate::phasefn::PhaseFunction;
 
 pub struct CompositeVolume {
@@ -77,5 +78,21 @@ impl Volume for CompositeVolume {
         }
 
         intervals
+    }
+
+    fn world_bounds(&self) -> AABB {
+        if self.children.len() == 0 {
+            return AABB {
+                min: Vec3::zero(), 
+                max: Vec3::zero()
+            };
+        }
+        let mut aabb = self.children[0].world_bounds();
+        let len = self.children.len();
+        for _i in 1..len {
+            aabb = aabb.extend(self.children[1].world_bounds());
+        }
+
+        aabb
     }
 }

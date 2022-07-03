@@ -369,7 +369,8 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		//phase_fn: Box::new(HenyeyGreenstein{g: 0.76}),
 		phase_fn: Box::new(DoubleHenyeyGreenstein{g1: 0.76, g2: -0.5, b: 0.2}),
 		emission_value: vec3(0.0, 0.0, 0.0),
-		absorption_coeff: vec3(0.75, 0.92, 0.72)
+		absorption_coeff: vec3(0.75, 0.92, 0.72),
+		world_bounds: AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) }
 	};
 
 	let point_prim = pyroclastic_point::PyroclasticPoint {
@@ -428,6 +429,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 	println!("> Rendering the voxel buffer...");
 	stopwatch.start("rendering");
 
+	// #todo-refactor: Specify step sizes for raymarching here
 	let render_settings = RenderSettings {
 		exposure: EXPOSURE,
 		gamma: GAMMA_VALUE
