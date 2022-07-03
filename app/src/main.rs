@@ -55,6 +55,37 @@ const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
 const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
 
+// See begin_render() for rendering code.
+fn main() {
+	for arg in env::args() {
+		if arg == "-nogui" {
+			begin_render(None);
+			return;
+		}
+	}
+
+	let main_window = WindowDesc::new(ui_builder)
+		.title(WINDOW_TITLE)
+		.window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
+
+	let app = AppLauncher::with_window(main_window);
+
+	let app_state = AppState {
+		render_job_state: RenderJobState::IDLE,
+		progress: 0,
+		render_result: Arc::new(Mutex::new(Vec::new()))
+	};
+
+	let delegate = Delegate {
+		event_sink: app.get_external_handle()
+	};
+
+	app.delegate(delegate)
+		.use_simple_logger()
+		.launch(app_state)
+		.expect("Failed to launch app");
+}
+
 #[derive(Copy, Clone, PartialEq, druid::Data)]
 pub enum RenderJobState {
 	IDLE,
@@ -145,36 +176,6 @@ impl AppDelegate<AppState> for Delegate {
 
 		true
 	}
-}
-
-fn main() {
-	for arg in env::args() {
-		if arg == "-nogui" {
-			begin_render(None);
-			return;
-		}
-	}
-
-	let main_window = WindowDesc::new(ui_builder)
-		.title(WINDOW_TITLE)
-		.window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
-
-	let app = AppLauncher::with_window(main_window);
-
-	let app_state = AppState {
-		render_job_state: RenderJobState::IDLE,
-		progress: 0,
-		render_result: Arc::new(Mutex::new(Vec::new()))
-	};
-
-	let delegate = Delegate {
-		event_sink: app.get_external_handle()
-	};
-
-	app.delegate(delegate)
-		.use_simple_logger()
-		.launch(app_state)
-		.expect("Failed to launch app");
 }
 
 // #todo-gui: druid-shell complains about 'dropped message' like crazy while a dialog is open
@@ -342,6 +343,7 @@ fn test_sparse_buffer() {
 	println!("=== END TEST SPARSE BUFFER ===");
 }
 
+// sink: Druid context for GUI update. (None if no gui mode)
 fn begin_render(sink: Option<ExtEventSink>) {
 	let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
 	let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -392,7 +394,8 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		vec3(-10.0, 0.0, 0.0),  // center
 		2.0,                    // radius
 		vec3(0.02, 0.02, 0.02), // emission
-		vec3(0.76, 0.65, 0.95), // absorption
+		vec3(0.76, 0.65, 0.95), // absorption coefficient
+		vec3(1.0, 1.0, 1.0), // scattering coefficient
 		Box::new(Isotropic{})); // phaseFn
 
 	let scene = Scene {
@@ -411,8 +414,11 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		]
 	};
 
+	// +x to right, +y to up, -z toward screen
 	let camera = Camera::new(
-		vec3(0.0, 0.0, 30.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0),
+		vec3(0.0, 0.0, 30.0), // origin
+		vec3(0.0, 0.0, -1.0), // lookAt
+		vec3(0.0, 1.0, 0.0),  // upVector
 		FOV_Y, aspect_ratio);
 
 	// ----------------------------------------------------------

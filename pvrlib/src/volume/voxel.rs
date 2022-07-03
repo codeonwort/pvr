@@ -29,14 +29,21 @@ impl Volume for VoxelVolume {
     fn scattering(&self, p: Vec3) -> Vec3 {
         self.buffer.sample_by_world_position(p)
     }
+    fn sample(&self, world_position : Vec3) -> VolumeSample {
+        let density = self.buffer.sample_by_world_position(world_position);
+        VolumeSample {
+            emission: self.emission_value * density,
+            absorption_coeff: self.absorption_coeff * density,
+            scattering_coeff: density
+        }
+    }
 
     fn set_phase_function(&mut self, phase_fn: Box<dyn PhaseFunction>) {
         self.phase_fn = phase_fn;
     }
-    fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
-        // #todo-phase: WTF logic for composite volume
-        let den = self.buffer.sample_by_world_position(p).max_component();
-        den * self.phase_fn.probability(wi, wo)
+    // #todo-refactor: Phase function takes a position parameter?
+    fn phase_function(&self, _p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
+        self.phase_fn.probability(wi, wo)
     }
 
     fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {

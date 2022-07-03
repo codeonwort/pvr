@@ -1,4 +1,5 @@
 use super::Volume;
+use super::VolumeSample;
 use crate::math::vec3::*;
 use crate::math::ray::*;
 use crate::phasefn::PhaseFunction;
@@ -38,6 +39,20 @@ impl Volume for CompositeVolume {
         }
 
         total_scattering
+    }
+
+    fn sample(&self, world_position: Vec3) -> VolumeSample {
+        let mut samp = VolumeSample::new();
+
+        // #todo: What if childrens intersect each other
+        for child in &self.children {
+            let child_samp = child.sample(world_position);
+            samp.emission += child_samp.emission;
+            samp.absorption_coeff += child_samp.absorption_coeff;
+            samp.scattering_coeff += child_samp.scattering_coeff;
+        }
+
+        return samp;
     }
 
     fn set_phase_function(&mut self, _phase_fn: Box<dyn PhaseFunction>) {

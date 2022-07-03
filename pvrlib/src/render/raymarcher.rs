@@ -3,6 +3,19 @@ use crate::math::ray::*;
 use crate::light::*;
 use crate::volume::*;
 
+/* Math cheatsheet
+
+dL(p,w) = Li(p,w) - Lo(p,w)
+        = emission + scattering_in - scattering_out - absorption
+
+dLa = -sigma_a * Li(p,w)ds
+dLe = Le(p,w)ds
+dLo(p,w) = -sigma_s * Li(p,w)ds
+dLi(p,w) = sigma_s * phase(w,w') * S(p,w')ds
+	where S = radiance coming from light source
+
+*/
+
 pub struct IntegrationResult {
     pub luminance: Vec3,
     pub transmittance: Vec3
@@ -14,27 +27,31 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 	// #todo: proper step size
 	let step_size: f32 = 1.0;
 
+	// #todo-refactor: Interval struct
 	// Integration bounds
-	let intervals = vol.find_intersections(ray);
+	let intervals: Vec<(f32, f32)> = vol.find_intersections(ray);
 	
 	let mut T: Vec3 = Vec3::one(); // total transmittance
 	let mut L: Vec3 = Vec3::zero(); // total luminance
 
+	// Loop for primary ray
 	for (t_start, t_end) in intervals {
 		let mut t_current = t_start;
 	
 		while t_current < t_end {
 			let p_i: Vec3 = ray.at(t_current);
 
-			// Sampling
-			let L_em: Vec3 = vol.emission(p_i);
-			let sigma_a: Vec3 = vol.absorption(p_i);
-			let sigma_s: Vec3 = vol.scattering(p_i);
+			// Sample the volume
+			let vol_sample: VolumeSample = vol.sample(p_i);
+			let L_em = vol_sample.emission;
+			let sigma_a = vol_sample.absorption_coeff;
+			let sigma_s = vol_sample.scattering_coeff;
 
 			let mut L_sc = Vec3::zero(); // luminance by scattering
 			
+			// Loop for secondary ray
 			for light in lights {
-				let light_sample = light.sample(p_i, ray.d);
+				let light_sample: LightSample = light.sample(p_i, ray.d);
 				let wi = (light_sample.position - p_i).normalize();
 
 				// Transmittance between current sampling point and light source

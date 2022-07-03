@@ -10,17 +10,26 @@ pub struct ConstantVolume {
 
     emission_value: Vec3,
     absorption_coeff: Vec3,
+    scattering_coeff: Vec3,
 
     phase_fn: Box<dyn PhaseFunction>
 }
 
 impl ConstantVolume {
-    pub fn new(center: Vec3, radius: f32, emission: Vec3, absorption: Vec3, phase_fn: Box<dyn PhaseFunction>) -> ConstantVolume {
+    pub fn new(
+        center: Vec3,
+        radius: f32,
+        emission: Vec3,
+        absorption: Vec3,
+        scattering: Vec3,
+        phase_fn: Box<dyn PhaseFunction>) -> ConstantVolume
+    {
         ConstantVolume {
             center: center,
             radius: radius,
             emission_value: emission,
             absorption_coeff: absorption,
+            scattering_coeff: scattering,
             phase_fn: phase_fn
         }
     }
@@ -39,6 +48,22 @@ impl Volume for ConstantVolume {
     }
     fn scattering(&self, _p: Vec3) -> Vec3 {
         Vec3::one()
+    }
+    fn sample(&self, world_position: Vec3) -> VolumeSample {
+        // #todo: Hmm... this should not be called if world_position is out of bounds at first.
+        if self.contains(world_position) {
+            return VolumeSample {
+                emission: self.emission_value,
+                absorption_coeff: self.absorption_coeff,
+                scattering_coeff: self.scattering_coeff
+            };
+        } else {
+            return VolumeSample {
+                emission: Vec3::zero(),
+                absorption_coeff: Vec3::zero(),
+                scattering_coeff: Vec3::zero()
+            };
+        }
     }
 
     fn set_phase_function(&mut self, phase_fn: Box<dyn PhaseFunction>) {
