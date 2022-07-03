@@ -30,9 +30,13 @@ pub trait Volume : Sync {
     fn emission(&self, p: Vec3) -> Vec3;
     fn absorption(&self, p: Vec3) -> Vec3;
     fn scattering(&self, p: Vec3) -> Vec3;
+    // Sample emission, absorption coeff, and scattering coeff at once.
     fn sample(&self, world_position: Vec3) -> VolumeSample;
 
     fn set_phase_function(&mut self, phase_fn: Box<dyn PhaseFunction>);
+
+    // #todo-refactor: Remove position parameter.
+    // See CompositeVolume::phase_function() for why it exists.
     fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32;
 
     // Return valid intervals to raymarch given a ray

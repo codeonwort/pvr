@@ -24,8 +24,9 @@ pub struct IntegrationResult {
 // #todo: UniformRaymarcher, AdaptiveRaymarcher
 #[allow(non_snake_case)]
 pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> IntegrationResult {
-	// #todo: proper step size
-	let step_size: f32 = 1.0;
+	// #todo: Proper step sizes
+	let step_size: f32 = 1.0; // Step size for primary ray
+	let step_L = 1.0;         // Step size for secondary ray
 
 	// #todo-refactor: Interval struct
 	// Integration bounds
@@ -57,7 +58,6 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 				// Transmittance between current sampling point and light source
 				let mut T_L: Vec3 = Vec3::one();
 				{
-					let step_L = 1.0;
 					let mut t_L = 0.0;
 
 					let mut t_L_end = (light_sample.position - p_i).length();

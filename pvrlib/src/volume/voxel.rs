@@ -11,6 +11,9 @@ pub struct VoxelVolume {
     // temp
     pub emission_value: Vec3,
     pub absorption_coeff: Vec3,
+
+    // #todo-refactor: transform for VoxelVolume
+    // pub transform: Transform
 }
 
 impl VoxelVolume {
@@ -19,6 +22,7 @@ impl VoxelVolume {
     }
 }
 
+// #todo-refactor: voxel buffer should use uniform coordinate, not world position
 impl Volume for VoxelVolume {
     fn emission(&self, p: Vec3) -> Vec3 {
         self.emission_value * self.buffer.sample_by_world_position(p)
@@ -41,7 +45,6 @@ impl Volume for VoxelVolume {
     fn set_phase_function(&mut self, phase_fn: Box<dyn PhaseFunction>) {
         self.phase_fn = phase_fn;
     }
-    // #todo-refactor: Phase function takes a position parameter?
     fn phase_function(&self, _p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
         self.phase_fn.probability(wi, wo)
     }

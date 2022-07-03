@@ -64,8 +64,8 @@ impl Volume for ConstantVolume {
     fn absorption(&self, p: Vec3) -> Vec3 {
         if self.contains(p) { self.absorption_coeff } else { Vec3::zero() }
     }
-    fn scattering(&self, _p: Vec3) -> Vec3 {
-        Vec3::one()
+    fn scattering(&self, p: Vec3) -> Vec3 {
+        if self.contains(p) { self.scattering_coeff } else { Vec3::zero() }
     }
     fn sample(&self, world_position: Vec3) -> VolumeSample {
         // #todo: Hmm... this should not be called if world_position is out of bounds at first.

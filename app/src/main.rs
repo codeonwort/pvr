@@ -378,7 +378,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 	};
 	point_prim.rasterize(voxel_volume.get_buffer());
 
-	// #todo-line
+	// #todo-line: Raymarcher step size is too big, this does not look like a line
 	let line_prim = line::Line {
 		p0: vec3(-20.0, 10.0, 0.0),
 		p1: vec3(20.0, 10.0, 0.0),
@@ -390,13 +390,12 @@ fn begin_render(sink: Option<ExtEventSink>) {
 
 	stopwatch.stop();
 
-	// #todo-fatal: Raymarching bug; constant_volume makes an artifact on noise volume at center.
 	let constant_volume = ConstantVolume::new(
 		ConstantVolumeShape::Box,
-		vec3(-10.0, 0.0, 0.0),  // center
+		vec3(-8.0, -8.0, 0.0),  // center
 		2.0,                    // radius
-		vec3(0.02, 0.02, 0.02), // emission
-		vec3(0.76, 0.65, 0.95), // absorption coefficient
+		vec3(0.1, 0.1, 0.1),    // emission
+		vec3(0.86, 0.85, 0.95), // absorption coefficient
 		vec3(1.0, 1.0, 1.0),    // scattering coefficient
 		Box::new(Isotropic{})); // phaseFn
 
@@ -404,6 +403,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		volume: Box::new(CompositeVolume {
 			children: vec![Box::new(voxel_volume), Box::new(constant_volume)]
 		}),
+		// #todo-light: These intensities are too big? Something wrong with lighting calculation?
 		lights: vec![
 			Box::new(PointLight {
 				position: vec3(80.0, -20.0, 20.0),
