@@ -390,12 +390,14 @@ fn begin_render(sink: Option<ExtEventSink>) {
 
 	stopwatch.stop();
 
+	// #todo-fatal: Raymarching bug; constant_volume makes an artifact on noise volume at center.
 	let constant_volume = ConstantVolume::new(
+		ConstantVolumeShape::Box,
 		vec3(-10.0, 0.0, 0.0),  // center
 		2.0,                    // radius
 		vec3(0.02, 0.02, 0.02), // emission
 		vec3(0.76, 0.65, 0.95), // absorption coefficient
-		vec3(1.0, 1.0, 1.0), // scattering coefficient
+		vec3(1.0, 1.0, 1.0),    // scattering coefficient
 		Box::new(Isotropic{})); // phaseFn
 
 	let scene = Scene {
@@ -405,11 +407,11 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		lights: vec![
 			Box::new(PointLight {
 				position: vec3(80.0, -20.0, 20.0),
-				intensity: 5.0 * vec3(0.0, 0.0, 10000.0)
+				intensity: 5.0 * vec3(1.0, 1.0, 10000.0)
 			}),
 			Box::new(PointLight {
 				position: vec3(-50.0, 20.0, -10.0),
-				intensity: 5.0 * vec3(10000.0, 0.0, 0.0)
+				intensity: 5.0 * vec3(10000.0, 1.0, 1.0)
 			})
 		]
 	};
@@ -454,7 +456,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 	match &sink {
 		Some(_sink) => {
 			_sink.submit_command(FINISH_RENDER_TASK, rt, None)
-			.expect("Failed to submit: FINISH_RENDER_TARGET");
+				.expect("Failed to submit: FINISH_RENDER_TARGET");
 		},
 		None => {
 			//

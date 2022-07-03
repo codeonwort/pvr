@@ -25,8 +25,8 @@ impl VolumeSample {
 }
 
 pub trait Volume : Sync {
-    // #todo-refactor: Wrap with VolumeSample struct
-    // coefficients
+    // #todo-refactor: Wanna leave only sample() but secondary ray marching needs only absorption.
+    // Using sample() for it degrades performance.
     fn emission(&self, p: Vec3) -> Vec3;
     fn absorption(&self, p: Vec3) -> Vec3;
     fn scattering(&self, p: Vec3) -> Vec3;

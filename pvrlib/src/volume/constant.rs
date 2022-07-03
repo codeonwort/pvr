@@ -3,8 +3,14 @@ use crate::math::vec3::*;
 use crate::math::ray::*;
 use crate::phasefn::PhaseFunction;
 
-// todo-volume: Simple sphere for now
+pub enum ConstantVolumeShape {
+    Box,
+    Sphere
+}
+
+// #todo-volume: Simple sphere for now
 pub struct ConstantVolume {
+    shape: ConstantVolumeShape,
     center: Vec3,
     radius: f32,
 
@@ -17,6 +23,7 @@ pub struct ConstantVolume {
 
 impl ConstantVolume {
     pub fn new(
+        shape: ConstantVolumeShape,
         center: Vec3,
         radius: f32,
         emission: Vec3,
@@ -25,6 +32,7 @@ impl ConstantVolume {
         phase_fn: Box<dyn PhaseFunction>) -> ConstantVolume
     {
         ConstantVolume {
+            shape: shape,
             center: center,
             radius: radius,
             emission_value: emission,
@@ -35,7 +43,17 @@ impl ConstantVolume {
     }
 
     fn contains(&self, p: Vec3) -> bool {
-        (p - self.center).length_sq() <= (self.radius * self.radius)
+        match self.shape {
+            ConstantVolumeShape::Box => {
+                let sides = p - self.center;
+                return sides.x.abs() <= self.radius
+                    && sides.y.abs() <= self.radius
+                    && sides.z.abs() <= self.radius;
+            }
+            ConstantVolumeShape::Sphere => {
+                (p - self.center).length_sq() <= (self.radius * self.radius)
+            }
+        }
     }
 }
 

@@ -87,6 +87,7 @@ impl Renderer<'_> {
                     let mut luminance = result.luminance;
                     //let transmittance = result.transmittance;
                     
+                    // #todo: Better tone mapping
                     // tone mapping
                     luminance = vec3(1.0, 1.0, 1.0) - (-luminance * exposure).exp();
         

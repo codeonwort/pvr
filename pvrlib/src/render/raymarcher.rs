@@ -90,13 +90,17 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 			T *= T_i;
 			L += (L_em + L_sc) * T * step_size;
 
-			if T.x < 0.01 && T.y < 0.01 && T.z < 0.01 {
+			// Stop raymarching if too opaque
+			if T.max_component() < 0.01 {
 				break;
 			}
 
 			t_current += step_size;
 		}
 	}
+
+	// #todo-sky: Fake sky lighting
+	// At least implmenet single scattering for atmosphere
 	
 	IntegrationResult { luminance: L, transmittance: T }
 }
