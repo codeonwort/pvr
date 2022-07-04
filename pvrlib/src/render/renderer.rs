@@ -11,7 +11,9 @@ use rayon::prelude::*;
 
 pub struct RenderSettings {
     pub exposure: f32,
-    pub gamma: f32
+    pub gamma: f32,
+    pub primary_step_size: f32,
+    pub secondary_step_size: f32,
 }
 
 pub trait RenderProgress : Send {
@@ -70,6 +72,8 @@ impl Renderer<'_> {
 
         let exposure = self.settings.exposure;
         let gamma = self.settings.gamma;
+        let step_size1 = self.settings.primary_step_size;
+        let step_size2 = self.settings.secondary_step_size;
 
         // Raymarching
         let total_pixels = width * height;
@@ -83,7 +87,13 @@ impl Renderer<'_> {
                     let v = (y as f32) * inv_height;
                     let ray = camera.get_ray(u, v);
 
-                    let result = integrate_ray(scene.volume.deref(), ray, &scene.lights);
+                    let result = integrate_ray(
+                        scene.volume.deref(),
+                        ray,
+                        &scene.lights,
+                        step_size1,
+                        step_size2);
+                    
                     let mut luminance = result.luminance;
                     //let transmittance = result.transmittance;
                     

@@ -23,11 +23,13 @@ pub struct IntegrationResult {
 
 // #todo: UniformRaymarcher, AdaptiveRaymarcher
 #[allow(non_snake_case)]
-pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> IntegrationResult {
-	// #todo: Proper step sizes
-	let step_size: f32 = 1.0; // Step size for primary ray
-	let step_L = 1.0;         // Step size for secondary ray
-
+pub fn integrate_ray(
+	vol: &dyn Volume,
+	ray: Ray,
+	lights: &[Box<dyn Light>],
+	primary_step_size: f32,
+	secondary_step_size: f32) -> IntegrationResult
+{
 	// #todo-refactor: Interval struct
 	// Integration bounds
 	let intervals: Vec<(f32, f32)> = vol.find_intersections(ray);
@@ -69,8 +71,8 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 						let p_L = p_i + wi * t_L;
 						let sigma_a_L = vol.absorption(p_L);
 
-						T_L *= (-sigma_a_L * step_L).exp();
-						t_L += step_L;
+						T_L *= (-sigma_a_L * secondary_step_size).exp();
+						t_L += secondary_step_size;
 						
 						if T_L.x < 0.01 && T_L.y < 0.01 && T_L.z < 0.01 {
 							break;
@@ -85,17 +87,17 @@ pub fn integrate_ray(vol: &dyn Volume, ray: Ray, lights: &[Box<dyn Light>]) -> I
 				L_sc += sigma_s * sc_prob * light_sample.luminance * T_L;
 			}
 			
-			let T_i: Vec3 = (-sigma_a * step_size).exp();
+			let T_i: Vec3 = (-sigma_a * primary_step_size).exp();
 
 			T *= T_i;
-			L += (L_em + L_sc) * T * step_size;
+			L += (L_em + L_sc) * T * primary_step_size;
 
 			// Stop raymarching if too opaque
 			if T.max_component() < 0.01 {
 				break;
 			}
 
-			t_current += step_size;
+			t_current += primary_step_size;
 		}
 	}
 

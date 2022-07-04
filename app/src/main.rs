@@ -54,6 +54,9 @@ const GAMMA_VALUE: f32 = 2.2;
 const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
 const VOXEL_RESOLUTION: (i32, i32, i32) = (512, 512, 256);
+// #todo: Step sizes are too coarse. 0.25 would be nice but it's 16x times slower.
+const STEP_SIZE_1ST: f32 = 1.0;
+const STEP_SIZE_2ND: f32 = 1.0;
 
 // See begin_render() for rendering code.
 fn main() {
@@ -429,10 +432,12 @@ fn begin_render(sink: Option<ExtEventSink>) {
 	println!("> Rendering the voxel buffer...");
 	stopwatch.start("rendering");
 
-	// #todo-refactor: Specify step sizes for raymarching here
+	// #todo: Proper step sizes
 	let render_settings = RenderSettings {
 		exposure: EXPOSURE,
-		gamma: GAMMA_VALUE
+		gamma: GAMMA_VALUE,
+		primary_step_size: STEP_SIZE_1ST,
+		secondary_step_size: STEP_SIZE_2ND,
 	};
 
 	let sink_clone = match &sink {
