@@ -1,5 +1,6 @@
 use crate::math::vec3::*;
 use crate::primitive::*;
+use crate::volume::voxel::VoxelVolume;
 use crate::voxelbuffer::VoxelBuffer;
 
 pub struct Line {
@@ -23,9 +24,9 @@ impl Line {
 impl Primitive for Line {}
 
 impl RasterizationPrimitive for Line {
-    fn rasterize(&self, voxel_buffer: &mut dyn VoxelBuffer) {
-        let p0 = voxel_buffer.world_to_voxel(self.p0);
-        let p1 = voxel_buffer.world_to_voxel(self.p1);
+    fn rasterize(&self, voxel_volume: &mut VoxelVolume) {
+        let p0 = voxel_volume.world_to_voxel(self.p0);
+        let p1 = voxel_volume.world_to_voxel(self.p1);
         let aug = vec3(self.radius, self.radius, self.radius);
 
         let p_min = vec3(f32::min(p0.x, p1.x), f32::min(p0.y, p1.y), f32::min(p0.z, p1.z)) - aug;
@@ -40,9 +41,9 @@ impl RasterizationPrimitive for Line {
             for y in y_min .. y_max {
                 for z in z_min .. z_max {
                     let vs_pos = vec3(x as f32, y as f32, z as f32);
-                    let density = self.density(voxel_buffer.voxel_to_world(vs_pos));
+                    let density = self.density(voxel_volume.voxel_to_world(vs_pos));
                     if density != Vec3::zero() {
-                        voxel_buffer.write(x, y, z, density);
+                        voxel_volume.get_buffer().write(x, y, z, density);
                     }
                 }
             }

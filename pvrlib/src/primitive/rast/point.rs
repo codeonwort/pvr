@@ -1,6 +1,5 @@
 use crate::math::vec3::*;
 use crate::primitive::*;
-use crate::voxelbuffer::VoxelBuffer;
 
 pub struct Point {
     pub center: Vec3,
@@ -19,13 +18,13 @@ impl Point {
 }
 
 impl Primitive for Point {
-	//
+    //
 }
 
 impl RasterizationPrimitive for Point {
-    fn rasterize(&self, voxel_buffer: &mut dyn VoxelBuffer) {
-        let p_min: Vec3 = voxel_buffer.world_to_voxel(self.center - self.radius.into());
-        let p_max: Vec3 = voxel_buffer.world_to_voxel(self.center + self.radius.into());
+    fn rasterize(&self, voxel_volume: &mut VoxelVolume) {
+        let p_min: Vec3 = voxel_volume.world_to_voxel(self.center - self.radius.into());
+        let p_max: Vec3 = voxel_volume.world_to_voxel(self.center + self.radius.into());
         let (x_min, y_min, z_min) = (p_min.x as i32, p_min.y as i32, p_min.z as i32);
         let (x_max, y_max, z_max) = (p_max.x as i32, p_max.y as i32, p_max.z as i32);
 
@@ -35,10 +34,10 @@ impl RasterizationPrimitive for Point {
             for y in y_min .. y_max {
                 for z in z_min .. z_max {
                     let vs_pos = vec3(x as f32, y as f32, z as f32);
-                    let density = self.density(voxel_buffer.voxel_to_world(vs_pos));
-					if density != Vec3::zero() {
-                    	voxel_buffer.write(x, y, z, density);
-					}
+                    let density = self.density(voxel_volume.voxel_to_world(vs_pos));
+                    if density != Vec3::zero() {
+                        voxel_volume.get_buffer().write(x, y, z, density);
+                    }
                 }
             }
         }

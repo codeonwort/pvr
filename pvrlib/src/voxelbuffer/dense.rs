@@ -1,18 +1,17 @@
 use super::VoxelBuffer;
 use crate::math::vec3::*;
-use crate::math::aabb::*;
 use crate::math::ray::Ray;
+use crate::math::aabb::AABB;
 
 pub struct DenseBuffer {
 	size_x: i32,
 	size_y: i32,
 	size_z: i32,
 	data: Vec<Vec3>,
-	ws_bounds: AABB
 }
 
 impl DenseBuffer {
-	pub fn new(size3d: (i32, i32, i32), ws_bounds: AABB) -> DenseBuffer {
+	pub fn new(size3d: (i32, i32, i32)) -> DenseBuffer {
 		let size = (size3d.0 * size3d.1 * size3d.2) as usize;
 		let mut data = Vec::<Vec3>::new();
 		data.resize(size, Vec3::zero());
@@ -21,8 +20,7 @@ impl DenseBuffer {
 			size_x: size3d.0,
 			size_y: size3d.1,
 			size_z: size3d.2,
-			data: data,
-			ws_bounds: ws_bounds
+			data: data
 		}
 	}
 
@@ -47,51 +45,36 @@ impl VoxelBuffer for DenseBuffer {
 		if u < 0.0 || v < 0.0 || w < 0.0 || u >= 1.0 || v >= 1.0 || w >= 1.0 {
 			Vec3::zero()
 		} else {
-			let i = (0.5 + u * (self.size_x as f32)) as i32;
-			let j = (0.5 + v * (self.size_y as f32)) as i32;
-			let k = (0.5 + w * (self.size_z as f32)) as i32;
-			let ix = self.index(i, j, k);
+			let fx = 0.5 + u * (self.size_x as f32);
+			let fy = 0.5 + v * (self.size_y as f32);
+			let fz = 0.5 + w * (self.size_z as f32);
+			let f = vec3(fx, fy, fz);
+			let a = f - f.floor();
 
-			if ix >= self.data.len() {
-				Vec3::zero()
-			} else {
-				self.data[ix]
-			}
+			let read_raw = |vf: Vec3| -> Vec3 {
+				let ix = self.index(vf.x as i32, vf.y as i32, vf.z as i32);
+				if ix >= self.data.len() {
+					Vec3::zero()
+				} else {
+					self.data[ix]
+				}
+			};
+
+			let v000 = read_raw(f);
+			let v001 = read_raw(f + vec3(0.0, 0.0, 1.0));
+			let v010 = read_raw(f + vec3(0.0, 1.0, 0.0));
+			let v011 = read_raw(f + vec3(0.0, 1.0, 1.0));
+			let v100 = read_raw(f + vec3(1.0, 0.0, 0.0));
+			let v101 = read_raw(f + vec3(1.0, 0.0, 1.0));
+			let v110 = read_raw(f + vec3(1.0, 1.0, 0.0));
+			let v111 = read_raw(f + vec3(1.0, 1.0, 1.0));
+
+			let front = lerp(lerp(v000, v100, a.x), lerp(v010, v110, a.x), a.y);
+			let back = lerp(lerp(v001, v101, a.x), lerp(v011, v111, a.x), a.y);
+			let final_value = lerp(front, back, a.z);
+
+			final_value
 		}
-	}
-
-	// nearest point
-	//fn sample_by_world_position(&self, p: Vec3) -> Vec3 {
-	//	let lp = self.world_to_voxel(p) / self.get_sizef();
-	//	self.sample_by_local_position(lp.x, lp.y, lp.z)
-	//}
-
-	// linear interpolation
-	fn sample_by_world_position(&self, p: Vec3) -> Vec3 {
-		let vp = self.world_to_voxel(p);
-		let f = (vp - vec3(0.5, 0.5, 0.5)).floor();
-		let a = vp - vec3(0.5, 0.5, 0.5) - f;
-
-		let v000 = self.sample_by_voxel_position(f);
-		let v001 = self.sample_by_voxel_position(f + vec3(0.0, 0.0, 1.0));
-		let v010 = self.sample_by_voxel_position(f + vec3(0.0, 1.0, 0.0));
-		let v011 = self.sample_by_voxel_position(f + vec3(0.0, 1.0, 1.0));
-		let v100 = self.sample_by_voxel_position(f + vec3(1.0, 0.0, 0.0));
-		let v101 = self.sample_by_voxel_position(f + vec3(1.0, 0.0, 1.0));
-		let v110 = self.sample_by_voxel_position(f + vec3(1.0, 1.0, 0.0));
-		let v111 = self.sample_by_voxel_position(f + vec3(1.0, 1.0, 1.0));
-
-		let front = lerp(lerp(v000, v100, a.x), lerp(v010, v110, a.x), a.y);
-		let back = lerp(lerp(v001, v101, a.x), lerp(v011, v111, a.x), a.y);
-
-		lerp(front, back, a.z)
-	}
-
-	fn world_to_voxel(&self, p: Vec3) -> Vec3 {
-		fit(p, self.ws_bounds.min, self.ws_bounds.max, Vec3::zero(), self.get_sizef())
-	}
-	fn voxel_to_world(&self, p: Vec3) -> Vec3 {
-		fit(p, Vec3::zero(), self.get_sizef(), self.ws_bounds.min, self.ws_bounds.max)
 	}
 
 	fn get_size(&self) -> (i32, i32, i32) {
@@ -100,15 +83,12 @@ impl VoxelBuffer for DenseBuffer {
 	fn get_sizef(&self) -> Vec3 {
 		vec3(self.size_x as f32, self.size_y as f32, self.size_z as f32)
 	}
-	fn get_ws_bounds(&self) -> AABB {
-		self.ws_bounds
-	}
 
 	// #todo-emptyspace: Any way to skip empty spaces for dense buffer?
 	// Keep internal sparse buffer only to find intersections?
-	fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
+	fn find_intersections(&self, ray: Ray, world_bounds: AABB) -> Vec<(f32, f32)> {
 		let mut intervals = Vec::new();
-        if let Some(v) = self.ws_bounds.intersect(ray) {
+        if let Some(v) = world_bounds.intersect(ray) {
             intervals.push(v);
         }
 

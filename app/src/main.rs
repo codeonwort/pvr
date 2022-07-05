@@ -305,8 +305,7 @@ fn noise_test(rt: &mut RenderTarget) {
 #[allow(dead_code)]
 fn test_sparse_buffer() {
 	println!("=== TEST SPARSE BUFFER ===");
-	let bounds = AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) };
-	let mut buffer = SparseBuffer::new((512, 512, 256), bounds);
+	let mut buffer = SparseBuffer::new((512, 512, 256));
 
 	println!("> write sparse buffer...");
 	buffer.write(0, 0, 0, vec3(3.0, 4.0, 5.0));
@@ -364,9 +363,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 
 	// #todo-emptyspace: Sparse buffer is 20x times slower
 	//let voxel_buffer = SparseBuffer::new(
-	let voxel_buffer = DenseBuffer::new(
-		VOXEL_RESOLUTION,
-		AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) });
+	let voxel_buffer = DenseBuffer::new(VOXEL_RESOLUTION);
 	let mut voxel_volume = VoxelVolume {
 		buffer: Box::new(voxel_buffer),
 		//phase_fn: Box::new(HenyeyGreenstein{g: 0.76}),
@@ -380,7 +377,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		center: vec3(0.0, 0.0, 0.0),
 		radius: 8.0
 	};
-	point_prim.rasterize(voxel_volume.get_buffer());
+	point_prim.rasterize(&mut voxel_volume);
 
 	// #todo-line: Raymarcher step size is too big, this does not look like a line
 	let line_prim = line::Line {
@@ -388,7 +385,7 @@ fn begin_render(sink: Option<ExtEventSink>) {
 		p1: vec3(20.0, 10.0, 0.0),
 		radius: 1.0
 	};
-	line_prim.rasterize(voxel_volume.get_buffer());
+	line_prim.rasterize(&mut voxel_volume);
 
 	println!("Buffer occupancy: {}", voxel_volume.get_buffer().get_occupancy());
 

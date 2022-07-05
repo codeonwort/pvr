@@ -123,18 +123,16 @@ impl TreeLeaf {
 
 pub struct SparseBuffer {
 	size: (i32, i32, i32),
-	ws_bounds: AABB,
 	root: Octree
 }
 
 impl SparseBuffer {
-	pub fn new(size: (i32, i32, i32), ws_bounds: AABB) -> SparseBuffer {
+	pub fn new(size: (i32, i32, i32)) -> SparseBuffer {
 		if size.0 <= 0 || size.1 <= 0 || size.2 <= 0 {
 			panic!("Invalid size: {:?}", size);
 		}
 		SparseBuffer {
 			size: size,
-			ws_bounds: ws_bounds,
 			root: Octree::Empty
 		}
 	}
@@ -205,11 +203,7 @@ impl SparseBuffer {
 
 impl VoxelBuffer for SparseBuffer {
 	fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> Vec3 {
-		let size = self.get_sizef();
-		self.sample_by_voxel_position(size * vec3(u, v, w))
-	}
-	fn sample_by_world_position(&self, p: Vec3) -> Vec3 {
-		let vp = self.world_to_voxel(p);
+		let vp = vec3(u, v, w) * self.get_sizef();
 		let f = (vp - vec3(0.5, 0.5, 0.5)).floor();
 		let a = vp - vec3(0.5, 0.5, 0.5) - f;
 
@@ -275,28 +269,18 @@ impl VoxelBuffer for SparseBuffer {
 		*/
 	}
 
-	fn world_to_voxel(&self, p: Vec3) -> Vec3 {
-		fit(p, self.ws_bounds.min, self.ws_bounds.max, Vec3::zero(), self.get_sizef())
-	}
-	fn voxel_to_world(&self, p: Vec3) -> Vec3 {
-		fit(p, Vec3::zero(), self.get_sizef(), self.ws_bounds.min, self.ws_bounds.max)
-	}
-
 	fn get_size(&self) -> (i32, i32, i32) {
 		self.size
 	}
 	fn get_sizef(&self) -> Vec3 {
 		vec3(self.size.0 as f32, self.size.1 as f32, self.size.2 as f32)
 	}
-	fn get_ws_bounds(&self) -> AABB {
-		self.ws_bounds
-	}
 
 	// #todo-emptyspace: Slow as hell
 	// Each read() needs to traverse the hierarchy from the root,
 	// but we identified which leaf is hit with each interval.
 	// Access to those leaves should be cached, not just the intervals.
-	fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
+	fn find_intersections(&self, ray: Ray, world_bounds: AABB) -> Vec<(f32, f32)> {
 		fn to_vec3(iv: (i32, i32, i32)) -> Vec3 {
 			vec3(iv.0 as f32, iv.1 as f32, iv.2 as f32)
 		}
@@ -326,7 +310,8 @@ impl VoxelBuffer for SparseBuffer {
 		}
 
 		let mut intervals: Vec<(f32, f32)> = Vec::new();
-		let ray2 = Ray::new(self.world_to_voxel(ray.o), ray.d);
+		let ray_o_vs = fit(ray.o, world_bounds.min, world_bounds.max, Vec3::zero(), self.get_sizef());
+		let ray2 = Ray::new(ray_o_vs, ray.d);
 		recurse(&self.root, &mut intervals, ray2);
 
 		intervals.sort_by(|(t0,_t1), (s0,_s1)| t0.partial_cmp(s0).unwrap());

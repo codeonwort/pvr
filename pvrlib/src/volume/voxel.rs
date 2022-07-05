@@ -22,21 +22,38 @@ impl VoxelVolume {
     pub fn get_buffer(&mut self) -> &mut dyn VoxelBuffer {
         &mut *self.buffer
     }
+
+    pub fn world_to_voxel(&self, p: Vec3) -> Vec3 {
+        fit(p, self.world_bounds.min, self.world_bounds.max, Vec3::zero(), self.buffer.get_sizef())
+    }
+    pub fn voxel_to_world(&self, p: Vec3) -> Vec3 {
+        fit(p, Vec3::zero(), self.buffer.get_sizef(), self.world_bounds.min, self.world_bounds.max)
+    }
+    pub fn world_to_local(&self, world_position: Vec3) -> Vec3 {
+        fit(world_position,
+            self.world_bounds.min, self.world_bounds.max,
+            Vec3::zero(), Vec3::one())
+    }
+
+    pub fn sample_by_world_position(&self, p: Vec3) -> Vec3 {
+        let uvw = self.world_to_local(p);
+        self.buffer.sample_by_local_position(uvw.x, uvw.y, uvw.z)
+    }
 }
 
 // #todo-refactor: voxel buffer should use uniform coordinate, not world position
 impl Volume for VoxelVolume {
     fn emission(&self, p: Vec3) -> Vec3 {
-        self.emission_value * self.buffer.sample_by_world_position(p)
+        self.emission_value * self.sample_by_world_position(p)
     }
     fn absorption(&self, p: Vec3) -> Vec3 {
-        self.absorption_coeff * self.buffer.sample_by_world_position(p)
+        self.absorption_coeff * self.sample_by_world_position(p)
     }
     fn scattering(&self, p: Vec3) -> Vec3 {
-        self.buffer.sample_by_world_position(p)
+        self.sample_by_world_position(p)
     }
     fn sample(&self, world_position : Vec3) -> VolumeSample {
-        let density = self.buffer.sample_by_world_position(world_position);
+        let density = self.sample_by_world_position(world_position);
         VolumeSample {
             emission: self.emission_value * density,
             absorption_coeff: self.absorption_coeff * density,
@@ -52,7 +69,7 @@ impl Volume for VoxelVolume {
     }
 
     fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
-        self.buffer.find_intersections(ray)
+        self.buffer.find_intersections(ray, self.world_bounds)
     }
     fn world_bounds(&self) -> AABB {
         self.world_bounds
