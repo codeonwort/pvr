@@ -137,17 +137,6 @@ impl SparseBuffer {
 		}
 	}
 
-	fn sample_by_voxel_position(&self, p: Vec3) -> Vec3 {
-		let vp = p + vec3(0.5, 0.5, 0.5);
-		let (x, y, z) = (vp.x as i32, vp.y as i32, vp.z as i32);
-
-		if x < 0 || y < 0 || z < 0 || x >= self.size.0 || y >= self.size.1 || z >= self.size.2 {
-			Vec3::zero()
-		} else {
-			self.read(x, y, z)
-		}
-	}
-
 	fn read_recurse(&self, node: &Octree, coord: (i32, i32, i32)) -> Vec3 {
 		match node {
 			Octree::Empty => Vec3::zero(),
@@ -322,7 +311,7 @@ impl VoxelBuffer for SparseBuffer {
 		let mut merged: Vec<(f32, f32)> = Vec::new();
 		if n > 0 {
 			let mut p = 0;
-			let mut q = 0;
+			let mut q = 0; // Why warning? (value assigned to q is never read?)
 			while p < n {
 				q = p;
 				while q + 1 < n {

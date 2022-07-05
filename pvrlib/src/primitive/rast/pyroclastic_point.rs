@@ -1,6 +1,5 @@
 use crate::math::vec3::*;
 use crate::primitive::*;
-use crate::voxelbuffer::VoxelBuffer;
 
 use crate::math::noise::*; // pyroclastic test
 

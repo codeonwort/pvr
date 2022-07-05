@@ -23,18 +23,7 @@ impl DenseBuffer {
 			data: data
 		}
 	}
-
-	fn sample_by_voxel_position(&self, p: Vec3) -> Vec3 {
-		let vp = p + vec3(0.5, 0.5, 0.5);
-		let (x, y, z) = (vp.x as i32, vp.y as i32, vp.z as i32);
-
-		if x < 0 || y < 0 || z < 0 || x >= self.size_x || y >= self.size_y || z >= self.size_z {
-			Vec3::zero()
-		} else {
-			self.read(x, y, z)
-		}
-	}
-
+	
 	fn index(&self, i: i32, j: i32, k: i32) -> usize {
 		(i + j * self.size_x + k * self.size_x * self.size_y) as usize
 	}
