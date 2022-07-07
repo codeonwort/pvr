@@ -4,7 +4,7 @@ use image::png::PngEncoder;
 use image::ColorType;
 use std::fs::File;
 use std::thread;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use std::env;
 
 use druid::widget::{Button, Flex, Label};
@@ -76,14 +76,7 @@ fn main() {
         .window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
 
     let app = AppLauncher::with_window(main_window);
-
-    let app_state = AppState {
-        render_job_state: RenderJobState::IDLE,
-        progress: 0,
-        render_result: Arc::new(Mutex::new(Vec::new())),
-        // #todo-gui: What on earth is this?
-        dummy_gamma_string: GAMMA_VALUE.to_string()
-    };
+    let app_state = AppState::new(GAMMA_VALUE);
 
     let delegate = Delegate {
         event_sink: app.get_external_handle()
@@ -156,17 +149,24 @@ impl AppDelegate<AppState> for Delegate {
                 thread::spawn(move || {
                     begin_render(Some(event_sink_clone));
                 });
+                data.add_log("Begin rendering...");
             } else {
                 println!("Renderer is already busy (caught in the delegate)");
+                data.add_log("FAILED: Renderer is already busy");
             }
         }
         if let Some(progress) = cmd.get(UPDATE_RENDER_PROGRESS) {
             data.progress = *progress;
+            if data.progress > 0 {
+                data.add_log(&format!("Progress: {} %", progress));
+            }
         }
         if let Some(render_result) = cmd.get(FINISH_RENDER_TASK) {
             let mut ex_buffer = data.render_result.lock().unwrap();
             render_result.copy_to(&mut ex_buffer);
+            drop(ex_buffer);
             data.render_job_state = RenderJobState::FINISHED;
+            data.add_log("Finish rendering...");
         }
 
         true
@@ -245,8 +245,10 @@ fn ui_builder() -> impl Widget<AppState> {
     // final hierarchy
 
     Flex::row()
-        .with_flex_child(col_render, 1.0)
-        .with_flex_child(build_ui_settings(), 0.5)
+        .with_flex_child(col_render, 0.5)
+        .with_flex_child(build_ui_settings(), 0.2)
+        .with_flex_spacer(0.1)
+        .with_flex_child(build_ui_output_log(), 0.2)
 }
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {

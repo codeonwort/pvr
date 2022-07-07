@@ -1,14 +1,14 @@
 // Constructs all widgets for renderer settings.
 
-use druid::widget::{Flex, Label, TextBox, Widget};
-use druid::LensWrap;
+use druid::widget::{Flex, Label, TextBox, Widget, Container, SizedBox};
+use druid::{LensWrap, Color};
 #[allow(unused_imports)]
 use druid::widget::{CrossAxisAlignment, MainAxisAlignment, Align};
 use crate::app::*;
 
 pub fn build_ui_settings() -> impl Widget<AppState> {
     let label_settings = Label::new(|_data: &AppState, _env: &druid::Env| {
-        format!("Settings (wip; doesn't work)")
+            format!("Settings (wip; doesn't work)")
         });
         // #todo-gui: padding and align are unavailable after
         // settings construction is separated to this function?
@@ -38,4 +38,21 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
         // #todo-gui: Align with the viewport at top?
         //.main_axis_alignment(MainAxisAlignment::Start)
         //.must_fill_main_axis(true)
+}
+
+pub fn build_ui_output_log() -> impl Widget<AppState> {
+    let label = Label::new(|data: &AppState, _env: &druid::Env| {
+            data.get_all_log()
+        })
+        .with_text_color(Color::rgb(0, 0, 0));
+
+    let label_container = SizedBox::new(
+            Container::new(label)
+            .background(Color::rgb(255, 255, 255))
+        )
+        .expand();
+
+    Flex::column()
+        .with_flex_child(label_container, 1.0)
+        .must_fill_main_axis(true)
 }
