@@ -1,7 +1,6 @@
 use crate::math::vec3::*;
 use crate::primitive::*;
 use crate::volume::voxel::VoxelVolume;
-use crate::voxelbuffer::VoxelBuffer;
 
 pub struct Line {
     pub	p0: Vec3,   // World position of a vertex

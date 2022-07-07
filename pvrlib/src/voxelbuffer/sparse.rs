@@ -311,7 +311,9 @@ impl VoxelBuffer for SparseBuffer {
 		let mut merged: Vec<(f32, f32)> = Vec::new();
 		if n > 0 {
 			let mut p = 0;
-			let mut q = 0; // Why warning? (value assigned to q is never read?)
+			// #todo: Why warning? (value assigned to q is never read?)
+			#[allow(unused_assignments)]
+			let mut q = 0;
 			while p < n {
 				q = p;
 				while q + 1 < n {
