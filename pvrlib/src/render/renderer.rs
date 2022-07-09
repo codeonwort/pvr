@@ -9,6 +9,7 @@ use std::sync::*;
 
 use rayon::prelude::*;
 
+// Options to setup before starting the rendering.
 pub struct RenderSettings {
     pub exposure: f32,
     pub gamma: f32,
@@ -16,9 +17,11 @@ pub struct RenderSettings {
     pub secondary_step_size: f32,
 }
 
+// Handles change of render progress.
+// ex) RenderProgressWithDruid updates a progress bar widget.
 pub trait RenderProgress : Send {
-    fn set_total(&mut self, total: u32);
-    fn update(&mut self, append: u32);
+    fn set_total(&mut self, total_pixels: u32);
+    fn update(&mut self, subregion: &RenderRegion);
 }
 
 pub struct Renderer<'a> {
@@ -28,7 +31,8 @@ pub struct Renderer<'a> {
     progress: &'a mut Mutex<dyn RenderProgress>
 }
 
-struct RenderRegion {
+#[derive(Clone)]
+pub struct RenderRegion {
     pub x0: usize,
     pub y0: usize,
     pub x1: usize,
@@ -38,8 +42,16 @@ struct RenderRegion {
 
 impl Renderer<'_> {
 
-    pub fn new<'a>(settings: RenderSettings, render_target: &'a mut RenderTarget, progress: &'a mut Mutex<dyn RenderProgress>) -> Renderer<'a> {
-        Renderer { settings: settings, render_target: render_target, progress: progress }
+    pub fn new<'a>(
+        settings: RenderSettings,
+        render_target: &'a mut RenderTarget,
+        progress: &'a mut Mutex<dyn RenderProgress>) -> Renderer<'a>
+    {
+        Renderer {
+            settings: settings,
+            render_target: render_target,
+            progress: progress
+        }
     }
 
     pub fn render(&mut self, camera: &Camera, scene: &Scene) {
@@ -79,10 +91,10 @@ impl Renderer<'_> {
         let total_pixels = width * height;
         self.progress.lock().unwrap().set_total(total_pixels as u32);
         
-        regions.par_iter_mut().for_each(|r| {
+        regions.par_iter_mut().for_each(|region| {
             // Render a subregion
-            for y in r.y0 .. r.y1 {
-                for x in r.x0 .. r.x1 {
+            for y in region.y0 .. region.y1 {
+                for x in region.x0 .. region.x1 {
                     let u = (x as f32) * inv_width;
                     let v = (y as f32) * inv_height;
                     let ray = camera.get_ray(u, v);
@@ -106,22 +118,16 @@ impl Renderer<'_> {
                     
                     // WTF Rust :(
                     // I can't directly modify self.render_target here?
-                    r.data.push(luminance);
+                    region.data.push(luminance);
                 }
             }
             // Update overall progress
-            self.progress.lock().unwrap().update(((r.x1 - r.x0) * (r.y1 - r.y0)) as u32);
+            self.progress.lock().unwrap().update(region);
         });
 
         // Copy subregions to the final render target (This is really unncessary work...)
-        regions.iter().for_each(|r| {
-            let mut p = 0;
-            for y in r.y0 .. r.y1 {
-                for x in r.x0 .. r.x1 {
-                    self.render_target.set(x as i32, y as i32, r.data[p]);
-                    p += 1;
-                }
-            }
+        regions.iter().for_each(|region| {
+            self.render_target.update_region(region);
         });
     }
 

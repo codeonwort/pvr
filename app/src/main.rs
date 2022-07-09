@@ -76,9 +76,9 @@ fn main() {
         .window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
 
     let app = AppLauncher::with_window(main_window);
-    let app_state = AppState::new(GAMMA_VALUE);
+    let app_state = AppState::new((IMAGE_WIDTH, IMAGE_HEIGHT), GAMMA_VALUE);
 
-    let delegate = Delegate {
+    let delegate = PVRAppDelegate {
         event_sink: app.get_external_handle()
     };
 
@@ -88,52 +88,63 @@ fn main() {
         .expect("Failed to launch app");
 }
 
-fn can_launch_render_job(current_state: RenderJobState) -> bool {
-    current_state == RenderJobState::IDLE
-    || current_state == RenderJobState::FINISHED
+pub struct RenderProgressSelectorPayload {
+    pub percent: u32,
+    pub region: RenderRegion
 }
 
 pub const START_RENDER_TASK: Selector<u32> = Selector::new("start_render_task");
-pub const UPDATE_RENDER_PROGRESS: Selector<u32> = Selector::new("update_render_progress");
+pub const UPDATE_RENDER_PROGRESS: Selector<RenderProgressSelectorPayload> = Selector::new("update_render_progress");
 pub const FINISH_RENDER_TASK: Selector<RenderTarget> = Selector::new("finish_render_task");
 
 struct RenderProgressWithDruid {
-    total: u32,
-    current: u32,
+    total_pixels: u32,   // total pixels to render
+    current_pixels: u32, // pixels rendered so far
     prev_percent: u32,
     event_sink: Option<druid::ExtEventSink>
 }
 impl RenderProgressWithDruid {
     pub fn new(event_sink: Option<druid::ExtEventSink>) -> Self {
-        RenderProgressWithDruid { total: 0, current: 0, prev_percent: 0, event_sink: event_sink }
+        RenderProgressWithDruid {
+            total_pixels: 0,
+            current_pixels: 0,
+            prev_percent: 0,
+            event_sink: event_sink
+        }
     }
 }
 impl RenderProgress for RenderProgressWithDruid {
-    fn set_total(&mut self, total: u32) {
-        self.total = total;
+    fn set_total(&mut self, total_pixels: u32) {
+        self.total_pixels = total_pixels;
     }
-    fn update(&mut self, append: u32) {
-        self.current += append;
+    fn update(&mut self, subregion: &RenderRegion) {
+        self.current_pixels += subregion.data.len() as u32;
         
-        let ratio = (self.current as f32) / (self.total as f32);
-        let percent = 10 * ((10.0 * ratio) as u32);
-        if percent != self.prev_percent {
-            println!("progress: {} %", percent);
-            self.prev_percent = percent;
+        let ratio = (self.current_pixels as f32) / (self.total_pixels as f32);
+        //let new_percent = 10 * ((10.0 * ratio) as u32);
+        let new_percent = (100.0 * ratio) as u32;
+
+        if new_percent != self.prev_percent {
+            println!("progress: {} %", new_percent);
+            self.prev_percent = new_percent;
             if let Some(_sink) = &self.event_sink {
+                let payload = RenderProgressSelectorPayload {
+                    percent: new_percent, 
+                    region: subregion.clone()
+                };
                 _sink
-                    .submit_command(UPDATE_RENDER_PROGRESS, percent, None)
+                    .submit_command(UPDATE_RENDER_PROGRESS, payload, None)
                     .expect("Failed to submit: UPDATE_RENDER_PROGRESS");
             }
         }
     }
 }
 
-struct Delegate {
+struct PVRAppDelegate {
     event_sink: ExtEventSink
 }
 
-impl AppDelegate<AppState> for Delegate {
+impl AppDelegate<AppState> for PVRAppDelegate {
     fn command(
         &mut self,
         _ctx: &mut DelegateCtx,
@@ -143,8 +154,8 @@ impl AppDelegate<AppState> for Delegate {
         _env: &Env
     ) -> bool {
         if cmd.is(START_RENDER_TASK) {
-            if can_launch_render_job(data.render_job_state) {
-                data.render_job_state = RenderJobState::BUSY;
+            if data.can_launch_render_job() {
+                data.mark_begin_rendering();
                 let event_sink_clone = self.event_sink.clone();
                 thread::spawn(move || {
                     begin_render(Some(event_sink_clone));
@@ -155,17 +166,18 @@ impl AppDelegate<AppState> for Delegate {
                 data.add_log("FAILED: Renderer is already busy");
             }
         }
-        if let Some(progress) = cmd.get(UPDATE_RENDER_PROGRESS) {
-            data.progress = *progress;
+        if let Some(payload) = cmd.get(UPDATE_RENDER_PROGRESS) {
+            data.progress = payload.percent;
+            data.update_temp_image(&payload.region);
             if data.progress > 0 {
-                data.add_log(&format!("Progress: {} %", progress));
+                data.add_log(&format!("Progress: {} %", data.progress));
             }
         }
         if let Some(render_result) = cmd.get(FINISH_RENDER_TASK) {
             let mut ex_buffer = data.render_result.lock().unwrap();
             render_result.copy_to(&mut ex_buffer);
             drop(ex_buffer);
-            data.render_job_state = RenderJobState::FINISHED;
+            data.mark_finish_rendering();
             data.add_log("Finish rendering...");
         }
 
@@ -212,7 +224,7 @@ fn ui_builder() -> impl Widget<AppState> {
     let render_button = Button::new("Render")
         .on_click(|_ctx, data: &mut AppState, _env| {
             // Run async render job
-            if can_launch_render_job(data.render_job_state) {
+            if data.can_launch_render_job() {
                 let cmd = Command::new(START_RENDER_TASK, 0);
                 _ctx.submit_command(cmd, None);
             } else {

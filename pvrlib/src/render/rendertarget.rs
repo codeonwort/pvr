@@ -1,4 +1,5 @@
 use crate::math::vec3::*;
+use crate::render::renderer::RenderRegion;
 
 pub struct RenderTarget {
 	pixels: Vec<Vec3>,
@@ -13,6 +14,23 @@ impl RenderTarget {
 		let black = Vec3::zero();
 		pixels.resize(width * height, black);
 		RenderTarget { pixels: pixels, width: width, height: height }
+	}
+
+	// Initialize all pixels with a single color
+	pub fn clear_color(&mut self, color: Vec3) {
+		for it in self.pixels.iter_mut() {
+			*it = color;
+		}
+	}
+
+	pub fn update_region(&mut self, region: &RenderRegion) {
+		let mut p = 0;
+		for y in region.y0..region.y1 {
+			for x in region.x0..region.x1 {
+				self.set(x as i32, y as i32, region.data[p]);
+				p += 1;
+			}
+		}
 	}
 
 	// #todo: Redundancy with generate_ldr_buffer()
