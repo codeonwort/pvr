@@ -30,7 +30,10 @@ pub struct AppState {
     default_gamma_correction: f32,
     default_primary_step_size: f32,
     default_secondary_step_size: f32,
+    pub exposure_input: String,
     pub gamma_correction_input: String,
+    pub primary_step_size_input: String,
+    pub secondary_step_size_input: String,
     // Misc
     output_log: Arc<Mutex<Vec<String>>>,
 }
@@ -52,7 +55,10 @@ impl AppState {
             default_gamma_correction: render_settings.gamma,
             default_primary_step_size: render_settings.primary_step_size,
             default_secondary_step_size: render_settings.secondary_step_size,
+            exposure_input: render_settings.exposure.to_string(),
             gamma_correction_input: render_settings.gamma.to_string(),
+            primary_step_size_input: render_settings.primary_step_size.to_string(),
+            secondary_step_size_input: render_settings.secondary_step_size.to_string(),
             // Misc
             output_log: Arc::new(Mutex::new(logs)),
         }
@@ -66,9 +72,18 @@ impl AppState {
             secondary_step_size: self.default_secondary_step_size,
         };
 
-        if let Ok(gamma_input) = self.gamma_correction_input.parse::<f32>() {
+        if let Ok(exposure_parsed) = self.exposure_input.parse::<f32>() {
+            settings.exposure = exposure_parsed.max(0.01);
+        }
+        if let Ok(gamma_parsed) = self.gamma_correction_input.parse::<f32>() {
             // Values below 1.0 makes no sense, but just keep it positive at the minimum.
-            settings.gamma = gamma_input.max(0.01);
+            settings.gamma = gamma_parsed.max(0.01);
+        }
+        if let Ok(stepsize1_parsed) = self.primary_step_size_input.parse::<f32>() {
+            settings.primary_step_size = stepsize1_parsed.max(0.1);
+        }
+        if let Ok(stepsize2_parsed) = self.secondary_step_size_input.parse::<f32>() {
+            settings.secondary_step_size = stepsize2_parsed.max(0.1);
         }
 
         settings
