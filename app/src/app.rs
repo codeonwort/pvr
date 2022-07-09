@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use pvrlib::math::vec3::*;
 use pvrlib::render::rendertarget::RenderTarget;
 use pvrlib::render::renderer::RenderRegion;
+use pvrlib::render::renderer::RenderSettings;
 
 // #todo-gui: Add scroll bar to the output log
 const OUTPUT_LOG_MAX_LINES: usize = 20;
@@ -16,25 +17,61 @@ pub enum RenderJobState {
 
 #[derive(Clone, druid::Data, druid::Lens)]
 pub struct AppState {
+    // Rendering status
     render_job_state: RenderJobState,
     pub progress: u32, // render job progress (0 ~ 100)
     pub render_result: Arc<Mutex<Vec<u8>>>,
-    pub dummy_gamma_string: String,
+    temp_render_target: Arc<Mutex<RenderTarget>>,
+    // Render settings
+    // #todo-druid: Can't impl or derive druid::Data for RenderSettings :/
+    //              Let's copy each field manually...
+    //default_render_settings: RenderSettings,
+    default_exposure: f32,
+    default_gamma_correction: f32,
+    default_primary_step_size: f32,
+    default_secondary_step_size: f32,
+    pub gamma_correction_input: String,
+    // Misc
     output_log: Arc<Mutex<Vec<String>>>,
-    temp_render_target: Arc<Mutex<RenderTarget>>
 }
 
 impl AppState {
-    pub fn new(render_image_size: (usize, usize), initial_gamma: f32) -> AppState {
+    pub fn new(
+        render_image_size: (usize, usize), render_settings: RenderSettings) -> AppState {
+        let rt = RenderTarget::new(render_image_size.0, render_image_size.1);
+        let logs = vec!["=== Output Log ===".to_string()];
+
         AppState {
+            // Rendering status
             render_job_state: RenderJobState::IDLE,
             progress: 0,
             render_result: Arc::new(Mutex::new(Vec::new())),
-            // #todo-gui: What on earth is this?
-            dummy_gamma_string: initial_gamma.to_string(),
-            output_log: Arc::new(Mutex::new(vec!["=== Output Log ===".to_string()])),
-            temp_render_target: Arc::new(Mutex::new(RenderTarget::new(render_image_size.0, render_image_size.1)))
+            temp_render_target: Arc::new(Mutex::new(rt)),
+            // Render settings
+            default_exposure: render_settings.exposure,
+            default_gamma_correction: render_settings.gamma,
+            default_primary_step_size: render_settings.primary_step_size,
+            default_secondary_step_size: render_settings.secondary_step_size,
+            gamma_correction_input: render_settings.gamma.to_string(),
+            // Misc
+            output_log: Arc::new(Mutex::new(logs)),
         }
+    }
+
+    pub fn get_render_settings(&self) -> RenderSettings {
+        let mut settings = RenderSettings {
+            exposure: self.default_exposure,
+            gamma: self.default_gamma_correction,
+            primary_step_size: self.default_primary_step_size,
+            secondary_step_size: self.default_secondary_step_size,
+        };
+
+        if let Ok(gamma_input) = self.gamma_correction_input.parse::<f32>() {
+            // Values below 1.0 makes no sense, but just keep it positive at the minimum.
+            settings.gamma = gamma_input.max(0.01);
+        }
+
+        settings
     }
 
     pub fn can_launch_render_job(&self) -> bool {

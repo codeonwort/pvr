@@ -53,6 +53,7 @@ const IMAGE_WIDTH: usize = 512;
 const IMAGE_HEIGHT: usize = 512;
 const FILENAME: &str = "output.png";
 
+// Default renderer settings
 const GAMMA_VALUE: f32 = 2.2;
 const FOV_Y: f32 = 45.0;
 const EXPOSURE: f32 = 1.2;
@@ -66,7 +67,9 @@ const STEP_SIZE_2ND: f32 = 1.0;
 fn main() {
     for arg in env::args() {
         if arg == "-nogui" {
-            begin_render(None);
+            let event_sink = None;
+            let settings = get_default_render_settings();
+            begin_render(event_sink, settings);
             return;
         }
     }
@@ -76,7 +79,7 @@ fn main() {
         .window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
 
     let app = AppLauncher::with_window(main_window);
-    let app_state = AppState::new((IMAGE_WIDTH, IMAGE_HEIGHT), GAMMA_VALUE);
+    let app_state = AppState::new((IMAGE_WIDTH, IMAGE_HEIGHT), get_default_render_settings());
 
     let delegate = PVRAppDelegate {
         event_sink: app.get_external_handle()
@@ -86,6 +89,15 @@ fn main() {
         .use_simple_logger()
         .launch(app_state)
         .expect("Failed to launch app");
+}
+
+fn get_default_render_settings() -> RenderSettings {
+    RenderSettings {
+        exposure: EXPOSURE,
+        gamma: GAMMA_VALUE,
+        primary_step_size: STEP_SIZE_1ST,
+        secondary_step_size: STEP_SIZE_2ND,
+    }
 }
 
 pub struct RenderProgressSelectorPayload {
@@ -154,11 +166,13 @@ impl AppDelegate<AppState> for PVRAppDelegate {
         _env: &Env
     ) -> bool {
         if cmd.is(START_RENDER_TASK) {
+            println!("input - gamma: {}", data.gamma_correction_input);
             if data.can_launch_render_job() {
                 data.mark_begin_rendering();
                 let event_sink_clone = self.event_sink.clone();
+                let render_settings = data.get_render_settings();
                 thread::spawn(move || {
-                    begin_render(Some(event_sink_clone));
+                    begin_render(Some(event_sink_clone), render_settings);
                 });
                 data.add_log("Begin rendering...");
             } else {
@@ -357,7 +371,7 @@ fn test_sparse_buffer() {
 }
 
 // sink: Druid context for GUI update. (None if no gui mode)
-fn begin_render(sink: Option<ExtEventSink>) {
+fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings) {
     let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
     let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
@@ -439,14 +453,6 @@ fn begin_render(sink: Option<ExtEventSink>) {
     // Rendering
     println!("> Rendering the voxel buffer...");
     stopwatch.start("rendering");
-
-    // #todo: Proper step sizes
-    let render_settings = RenderSettings {
-        exposure: EXPOSURE,
-        gamma: GAMMA_VALUE,
-        primary_step_size: STEP_SIZE_1ST,
-        secondary_step_size: STEP_SIZE_2ND,
-    };
 
     let sink_clone = match &sink {
         Some(_sink) => Some(_sink.clone()),

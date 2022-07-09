@@ -10,6 +10,7 @@ use std::sync::*;
 use rayon::prelude::*;
 
 // Options to setup before starting the rendering.
+#[derive(Copy, Clone)]
 pub struct RenderSettings {
     pub exposure: f32,
     pub gamma: f32,

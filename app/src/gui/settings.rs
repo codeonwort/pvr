@@ -8,7 +8,7 @@ use crate::app::*;
 
 pub fn build_ui_settings() -> impl Widget<AppState> {
     let label_settings = Label::new(|_data: &AppState, _env: &druid::Env| {
-            format!("Settings (wip; doesn't work)")
+            format!("Settings")
         });
         // #todo-gui: padding and align are unavailable after
         // settings construction is separated to this function?
@@ -23,7 +23,7 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
     let gamma_input = LensWrap::new(
         TextBox::new()
             .with_placeholder("gamma: ")
-        , AppState::dummy_gamma_string);
+        , AppState::gamma_correction_input);
 
     let gamma_row = Flex::row()
         .with_child(gamma_label)
