@@ -59,6 +59,9 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
         //.must_fill_main_axis(true)
 }
 
+// #todo-gui: Add a scroll bar to the output log.
+// Still don't know how exactly druid's layout works X(
+// See: OUTPUT_LOG_MAX_LINES
 pub fn build_ui_output_log() -> impl Widget<AppState> {
     let label = Label::new(|data: &AppState, _env: &druid::Env| {
             data.get_all_log()

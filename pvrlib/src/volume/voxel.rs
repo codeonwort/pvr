@@ -41,7 +41,6 @@ impl VoxelVolume {
     }
 }
 
-// #todo-refactor: voxel buffer should use uniform coordinate, not world position
 impl Volume for VoxelVolume {
     fn emission(&self, p: Vec3) -> Vec3 {
         self.emission_value * self.sample_by_world_position(p)

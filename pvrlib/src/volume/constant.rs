@@ -1,6 +1,7 @@
 use super::*;
 use crate::math::vec3::*;
 use crate::math::ray::*;
+use crate::math::aabb::AABB;
 use crate::phasefn::PhaseFunction;
 
 pub enum ConstantVolumeShape {
@@ -13,6 +14,7 @@ pub struct ConstantVolume {
     shape: ConstantVolumeShape,
     center: Vec3,
     radius: f32,
+    box_bounds: AABB,
 
     emission_value: Vec3,
     absorption_coeff: Vec3,
@@ -31,10 +33,12 @@ impl ConstantVolume {
         scattering: Vec3,
         phase_fn: Box<dyn PhaseFunction>) -> ConstantVolume
     {
+        let r = vec3(radius, radius, radius);
         ConstantVolume {
             shape: shape,
             center: center,
             radius: radius,
+            box_bounds: AABB { min: center - r, max: center + r },
             emission_value: emission,
             absorption_coeff: absorption,
             scattering_coeff: scattering,
@@ -54,6 +58,45 @@ impl ConstantVolume {
                 (p - self.center).length_sq() <= (self.radius * self.radius)
             }
         }
+    }
+
+    fn aabb_vs_ray(&self, ray: Ray) -> Vec<(f32, f32)> {
+        let mut t_min = f32::MAX;
+        let mut t_max = -f32::MIN;
+        let mut hit = true;
+        for i in 0..3 {
+            let inv_d = 1.0 / ray.d[i];
+            let mut t0 = (self.box_bounds.min[i] - ray.o[i]) * inv_d;
+            let mut t1 = (self.box_bounds.max[i] - ray.o[i]) * inv_d;
+            if inv_d < 0.0 {
+                std::mem::swap(&mut t0, &mut t1);
+            }
+            t_min = t_min.max(t0);
+            t_max = t_max.min(t1);
+            if t_max < t_min {
+                hit = false;
+            }
+        }
+
+        if hit {
+            vec!((t_min, t_max))
+        } else {
+            Vec::new()
+        }
+    }
+
+    fn sphere_vs_ray(&self, ray: Ray) -> Vec<(f32, f32)> {
+        let delta = ray.o - self.center;
+        let a = ray.d & ray.d;
+        let b = 2.0 * (ray.d & delta);
+        let c = (delta & delta) - (self.radius * self.radius);
+
+        let mut intervals = Vec::new();
+        if let Some(v) = solve_quadratic(a, b, c) {
+            intervals.push(v);
+        }
+
+        intervals
     }
 }
 
@@ -95,19 +138,11 @@ impl Volume for ConstantVolume {
         }
     }
 
-    // #todo-refactor: Only valid for sphere shape. Needs aabb-ray test for box shape.
     fn find_intersections(&self, ray: Ray) -> Vec<(f32, f32)> {
-        let delta = ray.o - self.center;
-        let a = ray.d & ray.d;
-        let b = 2.0 * (ray.d & delta);
-        let c = (delta & delta) - (self.radius * self.radius);
-
-        let mut intervals = Vec::new();
-        if let Some(v) = solve_quadratic(a, b, c) {
-            intervals.push(v);
+        match self.shape {
+            ConstantVolumeShape::Box => self.aabb_vs_ray(ray),
+            ConstantVolumeShape::Sphere => self.sphere_vs_ray(ray)
         }
-
-        intervals
     }
 
     fn world_bounds(&self) -> AABB {

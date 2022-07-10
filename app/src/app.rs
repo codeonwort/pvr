@@ -342,8 +342,6 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
     let mut rt: RenderTarget = RenderTarget::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    //test_sparse_buffer();
-
     let mut stopwatch = Stopwatch::new();
 
     // ----------------------------------------------------------
@@ -358,7 +356,6 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     let voxel_buffer = DenseBuffer::new(VOXEL_RESOLUTION);
     let mut voxel_volume = VoxelVolume {
         buffer: Box::new(voxel_buffer),
-        //phase_fn: Box::new(HenyeyGreenstein{g: 0.76}),
         phase_fn: Box::new(DoubleHenyeyGreenstein{g1: 0.76, g2: -0.5, b: 0.2}),
         emission_value: vec3(0.0, 0.0, 0.0),
         absorption_coeff: vec3(0.75, 0.92, 0.72),
