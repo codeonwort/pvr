@@ -19,7 +19,6 @@ impl AppDelegate<AppState> for PVRAppDelegate {
         _env: &Env
     ) -> bool {
         if cmd.is(START_RENDER_TASK) {
-            println!("input - gamma: {}", data.gamma_correction_input);
             if data.can_launch_render_job() {
                 data.mark_begin_rendering();
                 let event_sink_clone = self.event_sink.clone();
@@ -34,9 +33,10 @@ impl AppDelegate<AppState> for PVRAppDelegate {
             }
         }
         if let Some(payload) = cmd.get(UPDATE_RENDER_PROGRESS) {
+            let should_add_log = (payload.percent > 0) && (payload.percent > data.progress);
             data.progress = payload.percent;
             data.update_temp_image(&payload.region);
-            if data.progress > 0 {
+            if should_add_log {
                 data.add_log(&format!("Progress: {} %", data.progress));
             }
         }

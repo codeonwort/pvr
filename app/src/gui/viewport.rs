@@ -50,6 +50,7 @@ impl Widget<AppState> for DruidViewport {
         let final_render_result = (data.render_result.lock().unwrap()).clone();
         let final_result_valid = final_render_result.len() == required_size;
 
+        // #todo-gui: Maybe this is too heavy for small work group sizes?
         let mut temp: Vec<u8> = Vec::new();
         let rawdata: &Vec<u8> = if progress == 100 && final_result_valid {
             &final_render_result

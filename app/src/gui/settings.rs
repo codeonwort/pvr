@@ -16,6 +16,15 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
         //.align_left();
 
     // #todo-gui: Use macro to create each row?
+    let work_group_size_label = Label::new("work group size: ");
+    let work_group_size_input_x = LensWrap::new(TextBox::new(), AppState::work_group_size_x_input);
+    let work_group_size_input_y = LensWrap::new(TextBox::new(), AppState::work_group_size_y_input);
+    let work_group_size_row = Flex::row()
+        .with_child(work_group_size_label)
+        .with_child(work_group_size_input_x)
+        .with_spacer(5.0)
+        .with_child(work_group_size_input_y);
+
     let exposure_label = Label::new("exposure: ");
     let exposure_input = LensWrap::new(TextBox::new(), AppState::exposure_input);
     let exposure_row = Flex::row().with_child(exposure_label).with_child(exposure_input);
@@ -34,6 +43,8 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
 
     Flex::column()
         .with_child(label_settings)
+        .with_spacer(20.0)
+        .with_child(work_group_size_row)
         .with_spacer(20.0)
         .with_child(exposure_row)
         .with_spacer(20.0)

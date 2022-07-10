@@ -81,8 +81,10 @@ impl RenderProgress for RenderProgressWithDruid {
         //let new_percent = 10 * ((10.0 * ratio) as u32);
         let new_percent = (100.0 * ratio) as u32;
 
-        if new_percent != self.prev_percent {
-            println!("progress: {} %", new_percent);
+        let should_send_command = true; // new_percent != self.prev_percent
+        let should_log = new_percent != self.prev_percent;
+
+        if should_send_command {
             self.prev_percent = new_percent;
             if let Some(_sink) = &self.event_sink {
                 let payload = RenderProgressSelectorPayload {
@@ -93,6 +95,9 @@ impl RenderProgress for RenderProgressWithDruid {
                     .submit_command(UPDATE_RENDER_PROGRESS, payload, None)
                     .expect("Failed to submit: UPDATE_RENDER_PROGRESS");
             }
+        }
+        if should_log {
+            println!("progress: {} %", new_percent);
         }
     }
 }
@@ -115,10 +120,13 @@ pub struct AppState {
     // #todo-druid: Can't impl or derive druid::Data for RenderSettings :/
     //              Let's copy each field manually...
     //default_render_settings: RenderSettings,
+    default_work_group_size: (usize, usize),
     default_exposure: f32,
     default_gamma_correction: f32,
     default_primary_step_size: f32,
     default_secondary_step_size: f32,
+    pub work_group_size_x_input: String,
+    pub work_group_size_y_input: String,
     pub exposure_input: String,
     pub gamma_correction_input: String,
     pub primary_step_size_input: String,
@@ -140,10 +148,13 @@ impl AppState {
             render_result: Arc::new(Mutex::new(Vec::new())),
             temp_render_target: Arc::new(Mutex::new(rt)),
             // Render settings
+            default_work_group_size: render_settings.work_group_size,
             default_exposure: render_settings.exposure,
             default_gamma_correction: render_settings.gamma,
             default_primary_step_size: render_settings.primary_step_size,
             default_secondary_step_size: render_settings.secondary_step_size,
+            work_group_size_x_input: render_settings.work_group_size.0.to_string(),
+            work_group_size_y_input: render_settings.work_group_size.1.to_string(),
             exposure_input: render_settings.exposure.to_string(),
             gamma_correction_input: render_settings.gamma.to_string(),
             primary_step_size_input: render_settings.primary_step_size.to_string(),
@@ -155,12 +166,19 @@ impl AppState {
 
     pub fn get_render_settings(&self) -> RenderSettings {
         let mut settings = RenderSettings {
+            work_group_size: self.default_work_group_size,
             exposure: self.default_exposure,
             gamma: self.default_gamma_correction,
             primary_step_size: self.default_primary_step_size,
             secondary_step_size: self.default_secondary_step_size,
         };
 
+        if let Ok(work_group_size_x_parsed) = self.work_group_size_x_input.parse::<usize>() {
+            settings.work_group_size.0 = work_group_size_x_parsed.max(4);
+        }
+        if let Ok(work_group_size_y_parsed) = self.work_group_size_y_input.parse::<usize>() {
+            settings.work_group_size.1 = work_group_size_y_parsed.max(4);
+        }
         if let Ok(exposure_parsed) = self.exposure_input.parse::<f32>() {
             settings.exposure = exposure_parsed.max(0.01);
         }

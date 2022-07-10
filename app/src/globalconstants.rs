@@ -11,6 +11,7 @@ pub const IMAGE_HEIGHT: usize = 512;
 pub const FILENAME: &str = "output.png";
 
 // Default renderer settings
+pub const WORK_GROUP_SIZE: (usize, usize) = (16, 16);
 pub const EXPOSURE: f32 = 1.2;
 pub const GAMMA_VALUE: f32 = 2.2;
 // #todo: Step sizes are too coarse. 0.25 would be nice but it's 16x times slower.

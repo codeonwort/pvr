@@ -49,6 +49,7 @@ fn main() {
 
 fn get_default_render_settings() -> RenderSettings {
     RenderSettings {
+        work_group_size: WORK_GROUP_SIZE,
         exposure: EXPOSURE,
         gamma: GAMMA_VALUE,
         primary_step_size: STEP_SIZE_1ST,

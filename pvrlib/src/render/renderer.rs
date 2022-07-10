@@ -12,10 +12,11 @@ use rayon::prelude::*;
 // Options to setup before starting the rendering.
 #[derive(Copy, Clone)]
 pub struct RenderSettings {
+    pub work_group_size: (usize, usize),
     pub exposure: f32,
     pub gamma: f32,
     pub primary_step_size: f32,
-    pub secondary_step_size: f32,
+    pub secondary_step_size: f32
 }
 
 // Handles change of render progress.
@@ -62,21 +63,21 @@ impl Renderer<'_> {
         let inv_height = 1.0 / (height as f32);
 
         // Partition the whole region into subregions
-        let work_size = (32, 32);
-        let work_group_size = (
-            (width / 32) + if width % 32 == 0 { 0 } else { 1 },
-            (height / 32) + if height % 32 == 0 { 0 } else { 1 }
+        let work_group_size = self.settings.work_group_size;
+        let work_group_count = (
+            (width / work_group_size.0) + if width % work_group_size.0 == 0 { 0 } else { 1 },
+            (height / work_group_size.1) + if height % work_group_size.1 == 0 { 0 } else { 1 }
         );
         let mut regions = Vec::new();
-        for i in 0..(work_group_size.0) {
-            for j in 0..(work_group_size.1) {
-                let x = i * work_size.0;
-                let y = j * work_size.1;
+        for i in 0..(work_group_count.0) {
+            for j in 0..(work_group_count.1) {
+                let x = i * work_group_size.0;
+                let y = j * work_group_size.1;
                 let region = RenderRegion {
                     x0: x,
                     y0: y,
-                    x1: std::cmp::min(x + work_size.0, width),
-                    y1: std::cmp::min(y + work_size.1, height),
+                    x1: std::cmp::min(x + work_group_size.0, width),
+                    y1: std::cmp::min(y + work_group_size.1, height),
                     data: Vec::new()
                 };
                 regions.push(region);
