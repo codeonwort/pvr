@@ -19,14 +19,11 @@ use druid::{ExtEventSink, Selector, Command};
 // pvrlib package
 use pvrlib::math::vec3::*;
 use pvrlib::math::aabb::*;
-use pvrlib::math::noise::*;
 use pvrlib::light::*;
 use pvrlib::camera::*;
 use pvrlib::scene::*;
 use pvrlib::phasefn::*;
-use pvrlib::voxelbuffer::VoxelBuffer;
 use pvrlib::voxelbuffer::dense::DenseBuffer;
-use pvrlib::voxelbuffer::sparse::SparseBuffer;
 use pvrlib::volume::voxel::*;
 use pvrlib::volume::constant::*;
 use pvrlib::volume::composite::*;
@@ -340,77 +337,6 @@ fn print_rawbuffer(buffer: &Vec<u8>, width: u32, height: u32, filepath: &str) {
     out_file.sync_all().unwrap();
 }
 
-// #todo: Move to unit test
-#[allow(dead_code)]
-fn noise_test(rt: &mut RenderTarget) {
-    let width = rt.get_width();
-    let height = rt.get_height();
-    let inv_width = 1.0 / (width as f32);
-    let inv_height = 1.0 / (height as f32);
-
-    let z: f32 = 0.0;
-    for y in 0..height {
-        for x in 0..width {
-            let u = 2.0 * (x as f32) * inv_width - 1.0;
-            let v = 2.0 * (y as f32) * inv_height - 1.0;
-            let uv_len = (1.0_f32 - z * z).sqrt();
-            let p = vec3(uv_len * u, uv_len * v, z);
-            
-            let noise = fBm(p * 4.0);
-
-            let sphere_func = p.length() - 1.0;
-            let filter_width = 2.0;
-            let pyro = pyroclastic(sphere_func, noise, filter_width);
-
-            rt.set(x as i32, y as i32, pyro.into());
-        }
-    }
-}
-
-// #todo: Move to unit test
-#[allow(dead_code)]
-fn test_sparse_buffer() {
-    println!("=== TEST SPARSE BUFFER ===");
-    let mut buffer = SparseBuffer::new((512, 512, 256));
-
-    println!("> write sparse buffer...");
-    buffer.write(0, 0, 0, vec3(3.0, 4.0, 5.0));
-    buffer.write(50, 0, 70, vec3(7.0, 5.0, 2.0));
-    buffer.write(5, 0, 99, vec3(8.0, 1.0, 6.0));
-    buffer.write(99, 99, 99, vec3(5.0, 3.0, 1.0));
-    buffer.write(46, 0, -270, vec3(31.0, 42.0, 53.0));
-    //for y in 0..512 { buffer.write(0, y, 0, vec3(y as f32, 1.0, 1.0)); }
-
-    println!("> read sparse buffer...");
-    println!("buffer[0,0,0] = {:?}", buffer.read(0, 0, 0));
-    println!("buffer[50,0,70] = {:?}", buffer.read(50, 0, 70));
-    println!("buffer[5,0,99] = {:?}", buffer.read(5, 0, 99));
-    println!("buffer[99,99,99] = {:?}", buffer.read(99, 99, 99));
-    println!("buffer[46,0,-270] = {:?}", buffer.read(46, 0, -270));
-    //for y in 0..512 { println!("buffer[0,{},0] = {:?}", y, buffer.read(0, y, 0)); }
-
-    /*
-    // occupancy debugging
-    {
-        let buffer_size = (64, 64, 64);
-        let mut buffer = SparseBuffer::new(buffer_size, bounds);
-        println!("> buffer size: {:?}", buffer_size);
-
-        println!("> occupancy = {}", buffer.get_occupancy());
-
-        println!("> write to (0,0,0)");
-        buffer.write(0, 0, 0, vec3(1.0, 1.0, 1.0));
-        println!("> occupancy = {}", buffer.get_occupancy());
-
-        println!("> write to (63,63,63)");
-        buffer.write(63, 63, 63, vec3(1.0, 1.0, 1.0));
-        println!("> occupancy = {}", buffer.get_occupancy());
-    }
-    */
-
-    println!("=== END TEST SPARSE BUFFER ===");
-}
-
 // sink: Druid context for GUI update. (None if no gui mode)
 pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings) {
     let aspect_ratio = (IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32);
@@ -505,9 +431,6 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     renderer.render(&camera, &scene);
 
     stopwatch.stop();
-
-    // Comment out rasterization and rendering to test noise
-    //noise_test(&mut rt);
     
     println!("> Write the result to {}", FILENAME);
 
