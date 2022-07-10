@@ -30,6 +30,7 @@ pub fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
     Vec3::new(x, y, z)
 }
 
+// #todo-math: Not a good place to put these generics?
 pub fn fit<T>(v: T, old_min: T, old_max: T, new_min: T, new_max: T) -> T
     where T: Add<Output=T> + Sub<Output=T> + Div<Output=T> + Mul<Output=T> + Copy
 {
@@ -148,6 +149,7 @@ impl Sub for Vec3 {
     }
 }
 
+// Component-wise product
 impl Mul<Vec3> for Vec3 {
     type Output = Vec3;
     fn mul(self, rhs: Self) -> Self {
@@ -167,6 +169,7 @@ impl Mul<Vec3> for f32 {
     }
 }
 
+// Component-wise division
 impl Div<Vec3> for Vec3 {
     type Output = Vec3;
     fn div(self, rhs: Self) -> Self {
@@ -276,7 +279,7 @@ impl Index<usize> for Vec3 {
         } else if index == 2 {
             &self.z
         } else {
-            panic!("undefined index")
+            panic!("undefined index {}", index)
         }
     }
 }
@@ -290,30 +293,7 @@ impl IndexMut<usize> for Vec3 {
         } else if index == 2 {
             &mut self.z
         } else {
-            panic!("undefined index")
+            panic!("undefined index {}", index)
         }
     }
 }
-
-/*
-fn test_vec3() {
-	let v1 = Vec3::new(5.0, 1.0, 2.5);
-	let v2 = Vec3::new(2.5, 3.3, 1.0);
-	println!("v1 = {:?}", v1);
-	println!("v2 = {:?}", v2);
-	println!("-v1 = {:?}", -v1);
-	println!("v1 + v2 = {:?}", v1 + v2);
-	println!("v1 - v2 = {:?}", v1 - v2);
-	println!("v1 * v2 = {:?}", v1 * v2);
-	println!("v1 / v2 = {:?}", v1 / v2);
-	println!("v1 & v2 = {:?}", v1 & v2);
-	println!("v1 ^ v2 = {:?}", v1 ^ v2);
-	println!("v1 == v2 = {:?}", v1 == v2);
-	println!("v1.length() = {:?}", v1.length());
-	println!("v1.normalize() = {:?}", v1.normalize());
-	println!("distance(v1, v2) = {:?}", Vec3::distance(v1, v2));
-	println!("v1 * 2.0 = {:?}", v1 * 2.0);
-	println!("3.0 * v1 = {:?}", 3.0 * v1);
-	println!("v2 / 2.0 = {:?}", v2 / 2.0);
-}
-*/
