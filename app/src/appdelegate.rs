@@ -33,11 +33,11 @@ impl AppDelegate<AppState> for PVRAppDelegate {
             }
         }
         if let Some(payload) = cmd.get(UPDATE_RENDER_PROGRESS) {
-            let should_add_log = (payload.percent > 0) && (payload.percent > data.progress);
-            data.progress = payload.percent;
+            let should_add_log = (payload.percent > 0) && (payload.percent > data.render_progress);
+            data.render_progress = payload.percent;
             data.update_temp_image(&payload.region);
             if should_add_log {
-                data.add_log(&format!("Progress: {} %", data.progress));
+                data.add_log(&format!("Progress: {} %", data.render_progress));
             }
         }
         if let Some(render_result) = cmd.get(FINISH_RENDER_TASK) {

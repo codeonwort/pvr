@@ -46,7 +46,7 @@ impl Widget<AppState> for DruidViewport {
     fn paint(&mut self, ctx: &mut PaintCtx, data: &AppState, _env: &Env) {
         let required_size = (self.width * self.height * 3) as usize;
 
-        let progress = data.progress;
+        let progress = data.render_progress;
         let final_render_result = (data.render_result.lock().unwrap()).clone();
         let final_result_valid = final_render_result.len() == required_size;
 

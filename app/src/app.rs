@@ -110,7 +110,7 @@ pub enum RenderJobState {
 pub struct AppState {
     // Rendering status
     render_job_state: RenderJobState,
-    pub progress: u32, // render job progress (0 ~ 100)
+    pub render_progress: u32, // render job progress (0 ~ 100)
     pub render_result: Arc<Mutex<Vec<u8>>>,
     temp_render_target: Arc<Mutex<RenderTarget>>,
     // Render settings
@@ -141,7 +141,7 @@ impl AppState {
         AppState {
             // Rendering status
             render_job_state: RenderJobState::IDLE,
-            progress: 0,
+            render_progress: 0,
             render_result: Arc::new(Mutex::new(Vec::new())),
             temp_render_target: Arc::new(Mutex::new(rt)),
             // Render settings
@@ -202,7 +202,7 @@ impl AppState {
     pub fn mark_begin_rendering(&mut self) {
         assert!(self.can_launch_render_job());
         self.render_job_state = RenderJobState::BUSY;
-        self.progress = 0;
+        self.render_progress = 0;
         self.temp_render_target.lock().unwrap().clear_color(vec3(0.0, 1.0, 0.0));
     }
 
@@ -269,7 +269,7 @@ pub fn build_gui() -> impl Widget<AppState> {
     //let label = Label::new(text)
 
     let label = Label::new(|data: &AppState, _env: &druid::Env| {
-            format!("Progress: {}%", data.progress)
+            format!("Progress: {}%", data.render_progress)
         })
         .padding(5.0)
         .center();
