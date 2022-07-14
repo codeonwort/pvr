@@ -417,8 +417,8 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
                 intensity: 5.0 * vec3(10000.0, 1.0, 1.0)
             })
         ],
-        sky_atmosphere: SkyAtmosphere::new_empty()
-        //sky_atmosphere: SkyAtmosphere::new_atmosphere(vec3(0.0, -1.0, 0.0))
+        //sky_atmosphere: SkyAtmosphere::new_empty()
+        sky_atmosphere: SkyAtmosphere::new_atmosphere(vec3(-2.0, -1.0, 15.0), 5.0, 13.61839144264511)
     };
 
     // +x to right, +y to up, -z toward screen

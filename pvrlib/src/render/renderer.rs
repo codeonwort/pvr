@@ -3,6 +3,7 @@ use super::raymarcher::*;
 use crate::math::vec3::*;
 use crate::camera::Camera;
 use crate::scene::Scene;
+use crate::skyatmosphere::SkyAtmosphere;
 
 use std::ops::Deref;
 use std::sync::*;
@@ -112,7 +113,9 @@ impl Renderer<'_> {
                     let transmittance = result.transmittance;
                     
                     // #todo-sky: Move into integrate_ray?
-                    let sky_sample = scene.sky_atmosphere.sample(ray);
+                    // Atmosphere is not a mere background texture. It should affect volumes on the ground.
+                    let ray_on_earth = SkyAtmosphere::get_camera_ray_on_earth(ray);
+                    let sky_sample = scene.sky_atmosphere.sample(ray_on_earth);
                     luminance += sky_sample * transmittance;
 
                     // #todo: Better tone mapping
