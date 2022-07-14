@@ -368,6 +368,18 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     };
     point_prim.rasterize(&mut voxel_volume);
 
+    let point2_prim = pyroclastic_point::PyroclasticPoint {
+        center: vec3(3.0, -2.0, 10.0),
+        radius: 3.0
+    };
+    point2_prim.rasterize(&mut voxel_volume);
+
+    let point3_prim = pyroclastic_point::PyroclasticPoint {
+        center: vec3(-10.0, 1.0, -10.0),
+        radius: 7.0
+    };
+    point3_prim.rasterize(&mut voxel_volume);
+
     // #todo-line: Raymarcher step size is too big, this does not look like a line
     let line_prim = line::Line {
         p0: vec3(-20.0, 10.0, 0.0),
