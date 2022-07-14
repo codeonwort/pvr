@@ -7,6 +7,7 @@ pub mod voxelbuffer;
 pub mod primitive;
 pub mod volume;
 pub mod render;
+pub mod skyatmosphere;
 
 #[cfg(test)]
 mod tests {

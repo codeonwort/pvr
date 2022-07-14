@@ -31,6 +31,7 @@ use pvrlib::primitive::*;
 use pvrlib::primitive::rast::*;
 use pvrlib::render::rendertarget::RenderTarget;
 use pvrlib::render::renderer::*;
+use pvrlib::skyatmosphere::SkyAtmosphere;
 
 // ----------------------------------------------------------
 // crate
@@ -415,7 +416,9 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
                 position: vec3(-50.0, 20.0, -10.0),
                 intensity: 5.0 * vec3(10000.0, 1.0, 1.0)
             })
-        ]
+        ],
+        sky_atmosphere: SkyAtmosphere::new_empty()
+        //sky_atmosphere: SkyAtmosphere::new_atmosphere(vec3(0.0, -1.0, 0.0))
     };
 
     // +x to right, +y to up, -z toward screen

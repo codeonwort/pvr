@@ -100,9 +100,6 @@ pub fn integrate_ray(
 			t_current += primary_step_size;
 		}
 	}
-
-	// #todo-sky: Fake sky lighting
-	// At least implmenet single scattering for atmosphere
 	
 	IntegrationResult { luminance: L, transmittance: T }
 }

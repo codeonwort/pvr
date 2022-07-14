@@ -101,7 +101,7 @@ impl Renderer<'_> {
                     let v = (y as f32) * inv_height;
                     let ray = camera.get_ray(u, v);
 
-                    let result = integrate_ray(
+                    let result: IntegrationResult = integrate_ray(
                         scene.volume.deref(),
                         ray,
                         &scene.lights,
@@ -109,8 +109,12 @@ impl Renderer<'_> {
                         step_size2);
                     
                     let mut luminance = result.luminance;
-                    //let transmittance = result.transmittance;
+                    let transmittance = result.transmittance;
                     
+                    // #todo-sky: Move into integrate_ray?
+                    let sky_sample = scene.sky_atmosphere.sample(ray);
+                    luminance += sky_sample * transmittance;
+
                     // #todo: Better tone mapping
                     // tone mapping
                     luminance = vec3(1.0, 1.0, 1.0) - (-luminance * exposure).exp();
