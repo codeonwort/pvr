@@ -10,4 +10,5 @@ edition = "2018"
 image = "0.23.9"
 druid = { version = "0.6.0", features = ["image"] }
 native-dialog = { version = "0.5.5", features = ["windows_dpi_awareness", "windows_visual_styles"] }
+sys-info = "0.9.1"
 pvrlib = { path = "../pvrlib" }

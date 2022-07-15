@@ -131,6 +131,7 @@ pub struct AppState {
     pub secondary_step_size_input: String,
     // Misc
     output_log: Arc<Mutex<Vec<String>>>,
+    pub stopwatch: Stopwatch
 }
 
 impl AppState {
@@ -159,6 +160,7 @@ impl AppState {
             secondary_step_size_input: render_settings.secondary_step_size.to_string(),
             // Misc
             output_log: Arc::new(Mutex::new(logs)),
+            stopwatch: Stopwatch::new()
         }
     }
 
@@ -431,7 +433,7 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     // ----------------------------------------------------------
     // Rendering
     println!("> Rendering the voxel buffer...");
-    stopwatch.start("rendering");
+    stopwatch.start("raymarching");
 
     let sink_clone = match &sink {
         Some(_sink) => Some(_sink.clone()),

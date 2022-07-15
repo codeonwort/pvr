@@ -13,6 +13,7 @@ Study 'Production Volume Rendering' and implement it with Rust.
 - [image 0.23.9](https://docs.rs/image/0.23.9/image/index.html) for image IO
 - [druid 0.6.0](https://docs.rs/druid/0.6.0/druid/index.html) for GUI
 - [native-dialog 0.5.5](https://docs.rs/native-dialog/0.5.5/native_dialog/index.html) for GUI
+- [sys-info 0.9.1](https://docs.rs/sys-info/0.9.1/sys_info/index.html) for CPU info query
 
 # Sample Images
 --> Embed fancy images here <--
