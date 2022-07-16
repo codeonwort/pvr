@@ -58,6 +58,7 @@ fn get_sun_image(camera_ray: Ray, sun_direction: Vec3, sun_size: f32, sun_intens
     }
 }
 
+// Generates atmospheric scattering
 pub struct SkyAtmosphere {
     is_empty: bool,
     sun_direction: Vec3, // Sun incoming direction
@@ -98,15 +99,15 @@ impl SkyAtmosphere {
             return Vec3::zero();
         }
 
+        // Return value
+        let mut result = Vec3::zero();
+
         let sun_size = self.sun_size;
         let sun_dir = self.sun_direction;
         let sun_intensity = self.sun_intensity;
 
         let hit = self.atmosphere.intersect(ray);
         
-        // Atmosphere scattering
-        let mut result = Vec3::zero();
-
         let mu = (-sun_dir).dot(ray.d);
         let mut optical_depth = Vec3::zero();
 
@@ -121,9 +122,10 @@ impl SkyAtmosphere {
         for _i in 0..NUM_PRIMARY_STEPS {
             let height = P.length() - EARTH_RADIUS;
 
+            // Accidentally generates not-so-bad fake ground if let it contiue.
             if height < 0.0 {
                 is_ground = true;
-                break;
+                //break;
             }
 
             optical_depth += segment_length * (BetaR * (-height / Hr).exp());
@@ -166,8 +168,7 @@ impl SkyAtmosphere {
         }
 
         if is_ground {
-            //return vec3(1.0, 0.0, 0.0); // Debug color
-            return Vec3::zero();
+            //return Vec3::zero();
         }
 
         let T = (-optical_depth).exp();

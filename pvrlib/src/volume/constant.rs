@@ -9,7 +9,6 @@ pub enum ConstantVolumeShape {
     Sphere
 }
 
-// #todo-volume: Simple sphere for now
 pub struct ConstantVolume {
     shape: ConstantVolumeShape,
     center: Vec3,
