@@ -19,11 +19,13 @@ use druid::{ExtEventSink, Selector, Command};
 // pvrlib package
 use pvrlib::math::vec3::*;
 use pvrlib::math::aabb::*;
+use pvrlib::math::random::MT19937;
 use pvrlib::light::*;
 use pvrlib::camera::*;
 use pvrlib::scene::*;
 use pvrlib::phasefn::*;
 use pvrlib::voxelbuffer::dense::DenseBuffer;
+use pvrlib::volume::Volume;
 use pvrlib::volume::voxel::*;
 use pvrlib::volume::constant::*;
 use pvrlib::volume::composite::*;
@@ -367,13 +369,13 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
 
     let point_prim = pyroclastic_point::PyroclasticPoint {
         center: vec3(0.0, 0.0, 0.0),
-        radius: 8.0
+        radius: 10.0
     };
     point_prim.rasterize(&mut voxel_volume);
 
     let point2_prim = pyroclastic_point::PyroclasticPoint {
         center: vec3(3.0, -2.0, 10.0),
-        radius: 3.0
+        radius: 4.0
     };
     point2_prim.rasterize(&mut voxel_volume);
 
@@ -387,7 +389,7 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     let line_prim = line::Line {
         p0: vec3(-20.0, 10.0, 0.0),
         p1: vec3(20.0, 10.0, 0.0),
-        radius: 1.0
+        radius: 2.0
     };
     line_prim.rasterize(&mut voxel_volume);
 
@@ -395,28 +397,48 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
 
     stopwatch.stop();
 
-    let constant_volume = ConstantVolume::new(
-        ConstantVolumeShape::Box,
-        vec3(-8.0, -8.0, 0.0),  // center
-        2.0,                    // radius
-        vec3(0.1, 0.1, 0.1),    // emission
-        vec3(0.86, 0.85, 0.95), // absorption coefficient
-        vec3(1.0, 1.0, 1.0),    // scattering coefficient
-        Box::new(Isotropic{})); // phaseFn
+    let mut child_volumes: Vec<Box<dyn Volume>> = vec![];
+    {
+        let v0 = vec3(-20.0, 0.0, 0.0);
+        let side_length = 4.0;
+        let spacer = 2.0;
+        let jump_length = side_length + spacer;
+        let cols = 3;
+        let rows = 4;
+        let mut rng = MT19937::new(0);
+        for row in 0..rows {
+            for col in 0..cols {
+                let shape = if rng.rand() < 0.5 { ConstantVolumeShape::Box } else { ConstantVolumeShape::Sphere };
+                let vmin = v0 + vec3(col as f32 * -jump_length, row as f32 * jump_length, 0.0);
+                let emission = vec3(rng.rand_range(0.0, 0.2) as f32, rng.rand_range(0.0, 0.2) as f32, rng.rand_range(0.0, 0.2) as f32);
+                let absorption_coefficient = vec3(rng.rand_range(0.80, 0.99) as f32, rng.rand_range(0.80, 0.99) as f32, rng.rand_range(0.80, 0.99) as f32);
+                let vol = ConstantVolume::new(
+                    shape,
+                    vmin,                   // center
+                    side_length / 2.0,      // radius
+                    emission,
+                    absorption_coefficient,
+                    vec3(1.0, 1.0, 1.0),    // scattering coefficient
+                    Box::new(Isotropic{})); // phaseFn
+                child_volumes.push(Box::new(vol));
+            }
+        }
+    }
+    child_volumes.push(Box::new(voxel_volume));
 
     let scene = Scene {
         volume: Box::new(CompositeVolume {
-            children: vec![Box::new(voxel_volume), Box::new(constant_volume)]
+            children: child_volumes
         }),
         // #todo-light: These intensities are too big? Something wrong with lighting calculation?
         lights: vec![
             Box::new(PointLight {
-                position: vec3(80.0, -20.0, 20.0),
-                intensity: 5.0 * vec3(1.0, 1.0, 10000.0)
+                position: vec3(30.0, 5.0, 30.0),
+                intensity: vec3(1.0, 1.0, 10000.0)
             }),
             Box::new(PointLight {
-                position: vec3(-50.0, 20.0, -10.0),
-                intensity: 5.0 * vec3(10000.0, 1.0, 1.0)
+                position: vec3(-30.0, 0.0, -30.0),
+                intensity: vec3(10000.0, 1.0, 1.0)
             })
         ],
         //sky_atmosphere: SkyAtmosphere::new_empty()
@@ -425,9 +447,9 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
 
     // +x to right, +y to up, -z toward screen
     let camera = Camera::new(
-        vec3(0.0, 0.0, 30.0), // origin
-        vec3(0.0, 0.0, -1.0), // lookAt
-        vec3(0.0, 1.0, 0.0),  // upVector
+        vec3(0.0, 0.0, 70.0),  // origin
+        vec3(-15.0, 10.0, 0.0), // lookAt
+        vec3(0.0, 1.0, 0.0),   // upVector
         FOV_Y, aspect_ratio);
 
     // ----------------------------------------------------------

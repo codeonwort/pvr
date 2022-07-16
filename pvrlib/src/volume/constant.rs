@@ -61,8 +61,8 @@ impl ConstantVolume {
     }
 
     fn aabb_vs_ray(&self, ray: Ray) -> Vec<(f32, f32)> {
-        let mut t_min = f32::MAX;
-        let mut t_max = -f32::MIN;
+        let mut t_min = f32::MIN;
+        let mut t_max = f32::MAX;
         let mut hit = true;
         for i in 0..3 {
             let inv_d = 1.0 / ray.d[i];
