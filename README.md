@@ -18,6 +18,6 @@ Study 'Production Volume Rendering' and implement it with Rust.
 # Sample Images
 --> Embed fancy images here <--
 
-![sample_image_1](https://user-images.githubusercontent.com/11644393/178114429-f62f0176-b3f3-4403-89d3-5bc0f3062dad.jpg)
+![sample_image_1](https://user-images.githubusercontent.com/11644393/179394230-7f9b2515-d51b-41aa-8cb4-5af2836853e2.png)
 
 Not so fancy image
