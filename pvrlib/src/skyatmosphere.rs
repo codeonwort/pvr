@@ -140,6 +140,7 @@ impl SkyAtmosphere {
 
             let mut TL = Vec3::zero();
             let mut apply_scattering = true;
+            // From atmosphere boundary to the Sun
             for _j in 0..NUM_SECONDARY_STEPS {
                 let height2 = PL.length() - EARTH_RADIUS;
                 if height2 < 0.0 {

@@ -10,10 +10,6 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
     let label_settings = Label::new(|_data: &AppState, _env: &druid::Env| {
             format!("Settings")
         });
-        // #todo-gui: padding and align are unavailable after
-        // settings construction is separated to this function?
-        //.padding(5.0)
-        //.align_left();
 
     // #todo-gui: Use macro to create each row?
     let work_group_size_label = Label::new("work group size: ");
@@ -41,7 +37,8 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
     let stepsize2_input = LensWrap::new(TextBox::new(), AppState::secondary_step_size_input);
     let stepsize2_row = Flex::row().with_child(stepsize2_label).with_child(stepsize2_input);
 
-    Flex::column()
+    let col = Flex::column()
+        .with_spacer(10.0)
         .with_child(label_settings)
         .with_spacer(20.0)
         .with_child(work_group_size_row)
@@ -53,10 +50,13 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
         .with_child(stepsize1_row)
         .with_spacer(20.0)
         .with_child(stepsize2_row)
-        .cross_axis_alignment(CrossAxisAlignment::Start)
-        // #todo-gui: Align with the viewport at top?
-        //.main_axis_alignment(MainAxisAlignment::Start)
-        //.must_fill_main_axis(true)
+        .cross_axis_alignment(CrossAxisAlignment::Start);
+        
+    SizedBox::new(
+        Container::new(col)
+            .background(Color::rgb(0.5, 0.5, 0.5))
+        )
+        .expand()
 }
 
 // #todo-gui: Add a scroll bar to the output log.
@@ -70,7 +70,7 @@ pub fn build_ui_output_log() -> impl Widget<AppState> {
 
     let label_container = SizedBox::new(
             Container::new(label)
-            .background(Color::rgb(255, 255, 255))
+                .background(Color::rgb(1.0, 1.0, 1.0))
         )
         .expand();
 

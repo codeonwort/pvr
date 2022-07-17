@@ -78,7 +78,7 @@ impl Widget<AppState> for DruidViewport {
         };
     
         let size = Size::new(self.width as f64, self.height as f64);
-        let offset_matrix = FillStrat::None.affine_to_fill(ctx.size(), size);
+        let offset_matrix = FillStrat::Contain.affine_to_fill(ctx.size(), size);
 
         ctx.with_save(|ctx| {
             ctx.transform(offset_matrix);

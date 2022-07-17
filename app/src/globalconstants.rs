@@ -3,8 +3,8 @@
 // ----------------------------------------------------------
 
 pub const WINDOW_TITLE: &str = "PVR GUI";
-pub const WINDOW_WIDTH: f64 = 1280.0;
-pub const WINDOW_HEIGHT: f64 = 768.0;
+pub const WINDOW_WIDTH: f64 = 1600.0;
+pub const WINDOW_HEIGHT: f64 = 900.0;
 
 pub const IMAGE_WIDTH: usize = 512;
 pub const IMAGE_HEIGHT: usize = 512;

@@ -1,8 +1,11 @@
 use crate::math::vec3::*;
-use crate::primitive::*;
+use crate::primitive::{Primitive, RasterizationPrimitive};
+use crate::volume::voxel::VoxelVolume;
 
 use crate::math::noise::*; // pyroclastic test
 
+// A simple point with a pyroclastic fractal function attached.
+// Used for billowing smoke, cumulus-type cloud formations, etc.
 pub struct PyroclasticPoint {
     pub center: Vec3,
     pub radius: f32
@@ -32,6 +35,8 @@ impl RasterizationPrimitive for PyroclasticPoint {
 
         println!("Rasterize a PyroclasticPoint: vs_bounds={{min: {:?}, max: {:?}}}", p_min, p_max);
 
+        //let mut rng = crate::math::random::MT19937::new(0);
+
         for x in x_min .. x_max {
             for y in y_min .. y_max {
                 for z in z_min .. z_max {
@@ -40,9 +45,27 @@ impl RasterizationPrimitive for PyroclasticPoint {
 
                     let ws_pos = voxel_volume.voxel_to_world(vs_pos);
                     let ls_pos = (ws_pos - self.center) / self.radius;
+
+                    // #todo-noise: From the book's source code, but looks weird
+                    //let amplitude = 50.0;
+                    //let mut ns_pos = ls_pos;
+                    //ns_pos.x += rng.rand_range(-100.0, 100.0) as f32;
+                    //ns_pos.y += rng.rand_range(-100.0, 100.0) as f32;
+                    //ns_pos.z += rng.rand_range(-100.0, 100.0) as f32;
+                    //let noise = fBm(ns_pos) * amplitude;
+                    //let is_pyroclastic = true; // Parameterize this
+                    //let pyro;
+                    //if is_pyroclastic {
+                    //    let sphere_func = ls_pos.length() - 1.0;
+                    //    let filter_width = voxel_volume.world_bounds.size().length() / self.radius;
+                    //    pyro = pyroclastic(sphere_func, noise, filter_width);
+                    //} else {
+                    //    let distance_func = 1.0 - ls_pos.length();
+                    //    pyro = (distance_func + noise).max(0.0);
+                    //}
+
+                    // My pyroclastic
                     let noise = fBm(8.0 * ls_pos);
-                    
-                    //let sphere_func = ls_pos.length() - 1.0;
                     let sphere_func = ls_pos.length() + 0.9;
                     let filter_width = 2.0;//ws_bounds.size().length() / self.radius;
                     let pyro = pyroclastic(sphere_func, noise, filter_width);

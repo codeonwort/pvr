@@ -273,7 +273,7 @@ pub fn build_gui() -> impl Widget<AppState> {
     //	.with_arg("count", |data: &AppState, _env| (*data).progress.into());
     //let label = Label::new(text)
 
-    let label = Label::new(|data: &AppState, _env: &druid::Env| {
+    let progress_label = Label::new(|data: &AppState, _env: &druid::Env| {
             format!("Progress: {}%", data.render_progress)
         })
         .padding(5.0)
@@ -305,8 +305,10 @@ pub fn build_gui() -> impl Widget<AppState> {
         .padding(5.0);
 
     let mut col_render = Flex::column();
+    col_render.add_spacer(10.0);
     col_render.add_flex_child(viewport, 1.0);
-    col_render.add_child(label);
+    col_render.add_spacer(10.0);
+    col_render.add_child(progress_label);
     col_render.add_child(render_button);
     col_render.add_child(save_button);
 
@@ -314,10 +316,9 @@ pub fn build_gui() -> impl Widget<AppState> {
     // final hierarchy
 
     Flex::row()
-        .with_flex_child(col_render, 0.5)
-        .with_flex_child(build_ui_settings(), 0.2)
-        .with_flex_spacer(0.1)
-        .with_flex_child(build_ui_output_log(), 0.2)
+        .with_flex_child(col_render, 0.6)
+        .with_flex_child(build_ui_settings(), 0.25)
+        .with_flex_child(build_ui_output_log(), 0.15)
 }
 
 fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
@@ -386,10 +387,10 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     point3_prim.rasterize(&mut voxel_volume);
 
     // #todo-line: Raymarcher step size is too big, this does not look like a line
-    let line_prim = line::Line {
+    let line_prim = pyroclastic_line::PyroclasticLine {
         p0: vec3(-20.0, 10.0, 0.0),
         p1: vec3(20.0, 10.0, 0.0),
-        radius: 2.0
+        radius: 20.0
     };
     line_prim.rasterize(&mut voxel_volume);
 
