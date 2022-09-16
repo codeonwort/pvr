@@ -1,3 +1,5 @@
+[![Rust](https://github.com/codeonwort/pvr/actions/workflows/rust.yml/badge.svg)](https://github.com/codeonwort/pvr/actions/workflows/rust.yml)
+
 # Overview
 Study 'Production Volume Rendering' and implement it with Rust.
 
