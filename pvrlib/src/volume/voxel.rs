@@ -45,10 +45,10 @@ impl Volume for VoxelVolume {
     fn emission(&self, p: vec3f) -> vec3f {
         self.emission_value * self.sample_by_world_position(p)
     }
-    fn absorption(&self, p: vec3f) -> vec3f {
+    fn absorption_coeff(&self, p: vec3f) -> vec3f {
         self.absorption_coeff * self.sample_by_world_position(p)
     }
-    fn scattering(&self, p: vec3f) -> vec3f {
+    fn scattering_coeff(&self, p: vec3f) -> vec3f {
         self.sample_by_world_position(p)
     }
     fn sample(&self, world_position : vec3f) -> VolumeSample {

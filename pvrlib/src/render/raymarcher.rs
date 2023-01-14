@@ -69,7 +69,7 @@ pub fn integrate_ray(
 
 					while t_L < t_L_end {
 						let p_L = p_i + wi * t_L;
-						let sigma_a_L = vol.absorption(p_L);
+						let sigma_a_L = vol.absorption_coeff(p_L);
 
 						T_L *= (-sigma_a_L * secondary_step_size).exp();
 						t_L += secondary_step_size;

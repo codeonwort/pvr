@@ -24,19 +24,19 @@ impl Volume for CompositeVolume {
         total_emission
     }
 
-    fn absorption(&self, p: vec3f) -> vec3f {
+    fn absorption_coeff(&self, p: vec3f) -> vec3f {
         let mut total_absorption = vec3f::zero();
         for child in &self.children {
-            total_absorption += child.absorption(p);
+            total_absorption += child.absorption_coeff(p);
         }
 
         total_absorption
     }
 
-    fn scattering(&self, p: vec3f) -> vec3f {
+    fn scattering_coeff(&self, p: vec3f) -> vec3f {
         let mut total_scattering = vec3f::zero();
         for child in &self.children {
-            total_scattering += child.scattering(p);
+            total_scattering += child.scattering_coeff(p);
         }
 
         total_scattering

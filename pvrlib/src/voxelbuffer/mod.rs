@@ -7,7 +7,19 @@ use crate::math::aabb::AABB;
 
 use std::marker::Sync;
 
-// #todo-refactor: VoxelBuffer - float or Vec3?
+// #todo-refactor: Remove VoxelBuffer.
+//
+// I should define my own struct and implement `Volume` trait
+// using `DenseField` or `SparseField` as I want.
+// 
+// Example) Custom volume based on density voxel buffer:
+// DensityVoxelVolume {
+//     densityField: SparseField<f32>,
+//     emission_coeff: vec3f,   // constant, multiplied by density
+//     absorption_coeff: vec3f, // constant, multiplied by density
+//     scattering_coeff: vec3f  // constant, multiplied by density
+// }
+
 pub trait VoxelBuffer : Sync {
 	// Sample by uniform coordinates (0.0 <= u, v, w <= 1.0)
 	// Use read() to sample by raw coordinates.

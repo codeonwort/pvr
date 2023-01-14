@@ -1,6 +1,7 @@
 use super::*;
 use crate::math::vec3::*;
 use crate::math::ray::*;
+use crate::math::solve_quadratic;
 use crate::math::aabb::AABB;
 use crate::phasefn::PhaseFunction;
 
@@ -103,10 +104,10 @@ impl Volume for ConstantVolume {
     fn emission(&self, p: vec3f) -> vec3f {
         if self.contains(p) { self.emission_value } else { vec3f::zero() }
     }
-    fn absorption(&self, p: vec3f) -> vec3f {
+    fn absorption_coeff(&self, p: vec3f) -> vec3f {
         if self.contains(p) { self.absorption_coeff } else { vec3f::zero() }
     }
-    fn scattering(&self, p: vec3f) -> vec3f {
+    fn scattering_coeff(&self, p: vec3f) -> vec3f {
         if self.contains(p) { self.scattering_coeff } else { vec3f::zero() }
     }
     fn sample(&self, world_position: vec3f) -> VolumeSample {
