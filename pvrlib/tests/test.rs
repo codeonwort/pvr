@@ -4,6 +4,8 @@ use pvrlib::voxelbuffer::VoxelBuffer;
 use pvrlib::voxelbuffer::sparse::SparseField;
 use pvrlib::render::rendertarget::RenderTarget;
 
+use bit_vec::BitVec;
+
 macro_rules! assert_eq_float {
     ($x: expr, $y: expr) => {
         if ($x - $y).abs() > f32::EPSILON { panic!(); }
@@ -148,4 +150,21 @@ fn test_procedural_noise() {
     }
 
     // #todo-test: Hmm.. what to assert here?
+}
+
+#[test]
+fn test_bit_vec() {
+    let nbits = 1024 * 1024;
+    let mut bvec = BitVec::from_elem(nbits, false);
+    //bvec[0] = true; // No IndexMut...
+
+    bvec.set(1, true);
+    bvec.set(2, true);
+    bvec.set(7, true);
+
+    assert_eq!(bvec.get(0).unwrap(), false);
+    assert_eq!(bvec.get(1).unwrap(), true);
+    assert_eq!(bvec.get(nbits - 1), Some(false));
+    assert_eq!(bvec.get(nbits), None);
+    assert_eq!(bvec.get(nbits + 0), None);
 }

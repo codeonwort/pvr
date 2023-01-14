@@ -9,3 +9,4 @@ description = "PVR core library"
 
 [dependencies]
 rayon = "1.1"
+bit-vec = "0.6"
