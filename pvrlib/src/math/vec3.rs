@@ -14,20 +14,21 @@ use std::ops::Index;
 use std::ops::IndexMut;
 
 #[derive(Copy, Clone, Default, Debug)]
-pub struct Vec3 {
+#[allow(non_camel_case_types)]
+pub struct vec3f {
 	pub x: f32,
 	pub y: f32,
 	pub z: f32
 }
 
-impl Into<Vec3> for f32 {
-    fn into(self) -> Vec3 {
-        Vec3::new(self, self, self)
+impl Into<vec3f> for f32 {
+    fn into(self) -> vec3f {
+        vec3f::new(self, self, self)
     }
 }
 
-pub fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
-    Vec3::new(x, y, z)
+pub fn vec3(x: f32, y: f32, z: f32) -> vec3f {
+    vec3f::new(x, y, z)
 }
 
 // #todo-math: Not a good place to put these generics?
@@ -43,33 +44,33 @@ pub fn lerp<T>(x: T, y: T, a: f32) -> T
     x * (1.0 - a) + (y * a)
 }
 
-impl Vec3 {
+impl vec3f {
     // Constructors
-    pub fn new(x: f32, y: f32, z: f32) -> Vec3 {
-        Vec3 { x: x, y: y, z: z }
+    pub fn new(x: f32, y: f32, z: f32) -> vec3f {
+        vec3f { x: x, y: y, z: z }
     }
-    pub fn zero() -> Vec3 { Vec3::new(0.0, 0.0, 0.0) }
-    pub fn one() -> Vec3 { Vec3::new(1.0, 1.0, 1.0) }
+    pub fn zero() -> vec3f { vec3f::new(0.0, 0.0, 0.0) }
+    pub fn one() -> vec3f { vec3f::new(1.0, 1.0, 1.0) }
 
     // Static methods
-    pub fn distance(a: Vec3, b: Vec3) -> f32 {
+    pub fn distance(a: vec3f, b: vec3f) -> f32 {
         (a - b).length()
     }
-    pub fn distance_sq(a: Vec3, b: Vec3) -> f32 {
+    pub fn distance_sq(a: vec3f, b: vec3f) -> f32 {
         (a - b).length_sq()
     }
-    pub fn min(a: Vec3, b: Vec3) -> Vec3 {
-        Vec3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z))
+    pub fn min(a: vec3f, b: vec3f) -> vec3f {
+        vec3f::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z))
     }
-    pub fn max(a: Vec3, b: Vec3) -> Vec3 {
-        Vec3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z))
+    pub fn max(a: vec3f, b: vec3f) -> vec3f {
+        vec3f::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z))
     }
 
     // Member methods
-    pub fn dot(&self, rhs: Vec3) -> f32 {
+    pub fn dot(&self, rhs: vec3f) -> f32 {
         (*self) & rhs
     }
-    pub fn cross(&self, rhs: Vec3) -> Vec3 {
+    pub fn cross(&self, rhs: vec3f) -> vec3f {
         (*self) ^ rhs
     }
     pub fn length_sq(&self) -> f32 {
@@ -78,7 +79,7 @@ impl Vec3 {
     pub fn length(&self) -> f32 {
         self.length_sq().sqrt()
     }
-    pub fn normalize(&self) -> Vec3 {
+    pub fn normalize(&self) -> vec3f {
         let w = 1.0 / self.length();
         w * self.clone()
     }
@@ -111,86 +112,86 @@ impl Vec3 {
         }
     }
 
-    pub fn pow(&self, n: f32) -> Vec3 {
-        Vec3 { x: self.x.powf(n), y: self.y.powf(n), z: self.z.powf(n) }
+    pub fn pow(&self, n: f32) -> vec3f {
+        vec3f { x: self.x.powf(n), y: self.y.powf(n), z: self.z.powf(n) }
     }
-    pub fn exp(&self) -> Vec3 {
-        Vec3 { x: self.x.exp(), y: self.y.exp(), z: self.z.exp() }
+    pub fn exp(&self) -> vec3f {
+        vec3f { x: self.x.exp(), y: self.y.exp(), z: self.z.exp() }
     }
-    pub fn floor(&self) -> Vec3 {
-        Vec3 { x: self.x.floor(), y: self.y.floor(), z: self.z.floor() }
+    pub fn floor(&self) -> vec3f {
+        vec3f { x: self.x.floor(), y: self.y.floor(), z: self.z.floor() }
     }
-    pub fn fract(&self) -> Vec3 {
-        Vec3 { x: self.x.fract(), y: self.y.fract(), z: self.z.fract() }
+    pub fn fract(&self) -> vec3f {
+        vec3f { x: self.x.fract(), y: self.y.fract(), z: self.z.fract() }
     }
-    pub fn fract_glsl(&self) -> Vec3 {
+    pub fn fract_glsl(&self) -> vec3f {
         *self - self.floor()
     }
 }
 
-impl Neg for Vec3 {
-    type Output = Vec3;
+impl Neg for vec3f {
+    type Output = vec3f;
     fn neg(self) -> Self {
-        Vec3 { x: -self.x, y: -self.y, z: -self.z }
+        vec3f { x: -self.x, y: -self.y, z: -self.z }
     }
 }
 
-impl Add for Vec3 {
-    type Output = Vec3;
+impl Add for vec3f {
+    type Output = vec3f;
     fn add(self, rhs: Self) -> Self {
-        Vec3 { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z }
+        vec3f { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z }
     }
 }
 
-impl Sub for Vec3 {
-    type Output = Vec3;
+impl Sub for vec3f {
+    type Output = vec3f;
     fn sub(self, rhs: Self) -> Self {
-        Vec3 { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z }
+        vec3f { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z }
     }
 }
 
 // Component-wise product
-impl Mul<Vec3> for Vec3 {
-    type Output = Vec3;
+impl Mul<vec3f> for vec3f {
+    type Output = vec3f;
     fn mul(self, rhs: Self) -> Self {
-        Vec3 { x: self.x * rhs.x, y: self.y * rhs.y, z: self.z * rhs.z }
+        vec3f { x: self.x * rhs.x, y: self.y * rhs.y, z: self.z * rhs.z }
     }
 }
-impl Mul<f32> for Vec3 {
-    type Output = Vec3;
+impl Mul<f32> for vec3f {
+    type Output = vec3f;
     fn mul(self, rhs: f32) -> Self {
-        Vec3 { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs }
+        vec3f { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs }
     }
 }
-impl Mul<Vec3> for f32 {
-    type Output = Vec3;
-    fn mul(self, rhs: Vec3) -> Vec3 {
-        Vec3 { x: self * rhs.x, y: self * rhs.y, z: self * rhs.z }
+impl Mul<vec3f> for f32 {
+    type Output = vec3f;
+    fn mul(self, rhs: vec3f) -> vec3f {
+        vec3f { x: self * rhs.x, y: self * rhs.y, z: self * rhs.z }
     }
 }
 
 // Component-wise division
-impl Div<Vec3> for Vec3 {
-    type Output = Vec3;
+impl Div<vec3f> for vec3f {
+    type Output = vec3f;
     fn div(self, rhs: Self) -> Self {
-        Vec3 { x: self.x / rhs.x, y: self.y / rhs.y, z: self.z / rhs.z }
+        vec3f { x: self.x / rhs.x, y: self.y / rhs.y, z: self.z / rhs.z }
     }
 }
-impl Div<f32> for Vec3 {
-    type Output = Vec3;
+impl Div<f32> for vec3f {
+    type Output = vec3f;
     fn div(self, rhs: f32) -> Self {
-        Vec3 { x: self.x / rhs, y: self.y / rhs, z: self.z / rhs }
+        vec3f { x: self.x / rhs, y: self.y / rhs, z: self.z / rhs }
     }
 }
-impl Div<Vec3> for f32 {
-    type Output = Vec3;
-    fn div(self, rhs: Vec3) -> Vec3 {
-        Vec3 { x: self / rhs.x, y: self / rhs.y, z: self / rhs.z }
+impl Div<vec3f> for f32 {
+    type Output = vec3f;
+    fn div(self, rhs: vec3f) -> vec3f {
+        vec3f { x: self / rhs.x, y: self / rhs.y, z: self / rhs.z }
     }
 }
 
 // dot product (&)
-impl BitAnd for Vec3 {
+impl BitAnd for vec3f {
     type Output = f32;
     fn bitand(self, rhs: Self) -> f32 {
         (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
@@ -198,14 +199,14 @@ impl BitAnd for Vec3 {
 }
 
 // cross product (^)
-impl BitXor for Vec3 {
-    type Output = Vec3;
+impl BitXor for vec3f {
+    type Output = vec3f;
     fn bitxor(self, rhs: Self) -> Self {
-        Vec3 { x: self.y * rhs.z - self.z * rhs.y, y: self.z * rhs.x - self.x * rhs.z, z: self.x * rhs.y - self.y * rhs.x }
+        vec3f { x: self.y * rhs.z - self.z * rhs.y, y: self.z * rhs.x - self.x * rhs.z, z: self.x * rhs.y - self.y * rhs.x }
     }
 }
 
-impl AddAssign for Vec3 {
+impl AddAssign for vec3f {
     fn add_assign(&mut self, other: Self) {
         *self = Self {
             x: self.x + other.x,
@@ -215,7 +216,7 @@ impl AddAssign for Vec3 {
     }
 }
 
-impl SubAssign for Vec3 {
+impl SubAssign for vec3f {
     fn sub_assign(&mut self, other: Self) {
         *self = Self {
             x: self.x - other.x,
@@ -225,7 +226,7 @@ impl SubAssign for Vec3 {
     }
 }
 
-impl MulAssign<Vec3> for Vec3 {
+impl MulAssign<vec3f> for vec3f {
     fn mul_assign(&mut self, other: Self) {
         *self = Self {
             x: self.x * other.x,
@@ -234,7 +235,7 @@ impl MulAssign<Vec3> for Vec3 {
         };
     }
 }
-impl MulAssign<f32> for Vec3 {
+impl MulAssign<f32> for vec3f {
     fn mul_assign(&mut self, other: f32) {
         *self = Self {
             x: self.x * other,
@@ -244,7 +245,7 @@ impl MulAssign<f32> for Vec3 {
     }
 }
 
-impl DivAssign<Vec3> for Vec3 {
+impl DivAssign<vec3f> for vec3f {
     fn div_assign(&mut self, other: Self) {
         *self = Self {
             x: self.x / other.x,
@@ -253,7 +254,7 @@ impl DivAssign<Vec3> for Vec3 {
         };
     }
 }
-impl DivAssign<f32> for Vec3 {
+impl DivAssign<f32> for vec3f {
     fn div_assign(&mut self, other: f32) {
         *self = Self {
             x: self.x / other,
@@ -263,13 +264,13 @@ impl DivAssign<f32> for Vec3 {
     }
 }
 
-impl PartialEq for Vec3 {
+impl PartialEq for vec3f {
     fn eq(&self, rhs: &Self) -> bool {
         self.x == rhs.x && self.y == rhs.y && self.z == rhs.z
     }
 }
 
-impl Index<usize> for Vec3 {
+impl Index<usize> for vec3f {
     type Output = f32;
     fn index(&self, index: usize) -> &f32 {
         if index == 0 {
@@ -284,7 +285,7 @@ impl Index<usize> for Vec3 {
     }
 }
 
-impl IndexMut<usize> for Vec3 {
+impl IndexMut<usize> for vec3f {
     fn index_mut(&mut self, index: usize) -> &mut f32 {
         if index == 0 {
             &mut self.x

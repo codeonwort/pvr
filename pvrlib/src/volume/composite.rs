@@ -15,8 +15,8 @@ impl CompositeVolume {
 
 impl Volume for CompositeVolume {
     
-    fn emission(&self, p: Vec3) -> Vec3 {
-        let mut total_emission = Vec3::zero();
+    fn emission(&self, p: vec3f) -> vec3f {
+        let mut total_emission = vec3f::zero();
         for child in &self.children {
             total_emission += child.emission(p);
         }
@@ -24,8 +24,8 @@ impl Volume for CompositeVolume {
         total_emission
     }
 
-    fn absorption(&self, p: Vec3) -> Vec3 {
-        let mut total_absorption = Vec3::zero();
+    fn absorption(&self, p: vec3f) -> vec3f {
+        let mut total_absorption = vec3f::zero();
         for child in &self.children {
             total_absorption += child.absorption(p);
         }
@@ -33,8 +33,8 @@ impl Volume for CompositeVolume {
         total_absorption
     }
 
-    fn scattering(&self, p: Vec3) -> Vec3 {
-        let mut total_scattering = Vec3::zero();
+    fn scattering(&self, p: vec3f) -> vec3f {
+        let mut total_scattering = vec3f::zero();
         for child in &self.children {
             total_scattering += child.scattering(p);
         }
@@ -42,7 +42,7 @@ impl Volume for CompositeVolume {
         total_scattering
     }
 
-    fn sample(&self, world_position: Vec3) -> VolumeSample {
+    fn sample(&self, world_position: vec3f) -> VolumeSample {
         let mut samp = VolumeSample::new();
 
         // #todo: What if childrens intersect each other
@@ -60,7 +60,7 @@ impl Volume for CompositeVolume {
         // #todo-phase: What to do here?
         println!("WARNING: set_phase_fn() on CompositeVolume won't do nothing");
     }
-    fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
+    fn phase_function(&self, p: vec3f, wi: vec3f, wo: vec3f) -> f32 {
         // #todo-phase: Assumes no overlap between child volumes.
         // Need to introduce weight per phase fn.
         let mut total_p = 0.0;
@@ -83,8 +83,8 @@ impl Volume for CompositeVolume {
     fn world_bounds(&self) -> AABB {
         if self.children.len() == 0 {
             return AABB {
-                min: Vec3::zero(), 
-                max: Vec3::zero()
+                min: vec3f::zero(), 
+                max: vec3f::zero()
             };
         }
         let mut aabb = self.children[0].world_bounds();

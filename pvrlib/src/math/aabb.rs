@@ -4,19 +4,19 @@ use std::mem::swap;
 
 #[derive(Copy, Clone, Default, Debug)]
 pub struct AABB {
-    pub min: Vec3,
-    pub max: Vec3
+    pub min: vec3f,
+    pub max: vec3f
 }
 
 impl AABB {
-    pub fn center(&self) -> Vec3 {
+    pub fn center(&self) -> vec3f {
         0.5 * (self.min + self.max)
     }
-    pub fn size(&self) -> Vec3 {
+    pub fn size(&self) -> vec3f {
         self.max - self.min
     }
     // Extent
-    pub fn half_size(&self) -> Vec3 {
+    pub fn half_size(&self) -> vec3f {
         0.5 * (self.max - self.min)
     }
     // (ray_t_min, ray_t_max)
@@ -48,8 +48,8 @@ impl AABB {
     // Minimum bounds that encompasses original AABBs
     pub fn extend(&self, other: AABB) -> AABB {
         AABB {
-            min: Vec3::min(self.min, other.min),
-            max: Vec3::max(self.max, other.max)
+            min: vec3f::min(self.min, other.min),
+            max: vec3f::max(self.max, other.max)
         }
     }
 }

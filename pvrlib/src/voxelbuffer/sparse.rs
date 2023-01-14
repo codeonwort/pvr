@@ -23,7 +23,7 @@ struct TreeBranch {
 struct TreeLeaf {
 	pub coord: (i32, i32, i32), // min bounds
 	pub size: (i32, i32, i32),
-	data: Vec<Vec3>
+	data: Vec<vec3f>
 }
 
 impl TreeBranch {
@@ -54,7 +54,7 @@ impl TreeBranch {
 				let size_z = self.max_bounds.2 - self.min_bounds.2;
 				if size_x <= BLOCK_SIZE.0 && size_y <= BLOCK_SIZE.1 && size_z <= BLOCK_SIZE.2 {
 					let mut data = Vec::new();
-					data.resize((size_x * size_y * size_z) as usize, Vec3::zero());
+					data.resize((size_x * size_y * size_z) as usize, vec3f::zero());
 					self.children[ix] = Octree::Leaf(Box::new(TreeLeaf {
 						coord: self.min_bounds,
 						size: (size_x, size_y, size_z),
@@ -96,11 +96,11 @@ impl TreeBranch {
 }
 
 impl TreeLeaf {
-	pub fn read(&self, p: (i32, i32, i32)) -> Vec3 {
+	pub fn read(&self, p: (i32, i32, i32)) -> vec3f {
 		let ix = self.index(p);
 		self.data[ix]
 	}
-	pub fn write(&mut self, p: (i32, i32, i32), v: Vec3) {
+	pub fn write(&mut self, p: (i32, i32, i32), v: vec3f) {
 		let ix = self.index(p);
 		self.data[ix] = v;
 	}
@@ -137,15 +137,15 @@ impl SparseBuffer {
 		}
 	}
 
-	fn read_recurse(&self, node: &Octree, coord: (i32, i32, i32)) -> Vec3 {
+	fn read_recurse(&self, node: &Octree, coord: (i32, i32, i32)) -> vec3f {
 		match node {
-			Octree::Empty => Vec3::zero(),
+			Octree::Empty => vec3f::zero(),
 			Octree::Branch(branch) => {
 				if branch.contains(coord) {
 					let ix = branch.select_child(coord);
 					self.read_recurse(&branch.children[ix], coord)
 				} else {
-					Vec3::zero()
+					vec3f::zero()
 				}
 			},
 			Octree::Leaf(leaf) => {
@@ -191,18 +191,18 @@ impl SparseBuffer {
 }
 
 impl VoxelBuffer for SparseBuffer {
-	fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> Vec3 {
+	fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> vec3f {
 		let vp = vec3(u, v, w) * self.get_sizef();
 		let f = (vp - vec3(0.5, 0.5, 0.5)).floor();
 		let a = vp - vec3(0.5, 0.5, 0.5) - f;
 
 		// saves a few seconds, but still too slow than dense buffer.
-		let sample_offsets: [Vec3; 8] = [
+		let sample_offsets: [vec3f; 8] = [
 			vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 1.0),
 			vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0)];
-		let mut values: [Vec3; 8] = [
-			Vec3::zero(), Vec3::zero(), Vec3::zero(), Vec3::zero(),
-			Vec3::zero(), Vec3::zero(), Vec3::zero(), Vec3::zero()];
+		let mut values: [vec3f; 8] = [
+			vec3f::zero(), vec3f::zero(), vec3f::zero(), vec3f::zero(),
+			vec3f::zero(), vec3f::zero(), vec3f::zero(), vec3f::zero()];
 		let mut prev_node: Option<&TreeLeaf> = None;
 		for i in 0..8 {
 			let pos = f + sample_offsets[i];
@@ -212,7 +212,7 @@ impl VoxelBuffer for SparseBuffer {
 					let current_node = self.find_leaf(&self.root, posi);
 					match current_node {
 						None => {
-							values[i] = Vec3::zero();
+							values[i] = vec3f::zero();
 						},
 						Some(current_leaf) => {
 							values[i] = current_leaf.read(posi);
@@ -261,7 +261,7 @@ impl VoxelBuffer for SparseBuffer {
 	fn get_size(&self) -> (i32, i32, i32) {
 		self.size
 	}
-	fn get_sizef(&self) -> Vec3 {
+	fn get_sizef(&self) -> vec3f {
 		vec3(self.size.0 as f32, self.size.1 as f32, self.size.2 as f32)
 	}
 
@@ -270,7 +270,7 @@ impl VoxelBuffer for SparseBuffer {
 	// but we identified which leaf is hit with each interval.
 	// Access to those leaves should be cached, not just the intervals.
 	fn find_intersections(&self, ray: Ray, world_bounds: AABB) -> Vec<(f32, f32)> {
-		fn to_vec3(iv: (i32, i32, i32)) -> Vec3 {
+		fn to_vec3(iv: (i32, i32, i32)) -> vec3f {
 			vec3(iv.0 as f32, iv.1 as f32, iv.2 as f32)
 		}
 		fn recurse(node: &Octree, intervals: &mut Vec<(f32, f32)>, ray: Ray) {
@@ -299,7 +299,7 @@ impl VoxelBuffer for SparseBuffer {
 		}
 
 		let mut intervals: Vec<(f32, f32)> = Vec::new();
-		let ray_o_vs = fit(ray.o, world_bounds.min, world_bounds.max, Vec3::zero(), self.get_sizef());
+		let ray_o_vs = fit(ray.o, world_bounds.min, world_bounds.max, vec3f::zero(), self.get_sizef());
 		let ray2 = Ray::new(ray_o_vs, ray.d);
 		recurse(&self.root, &mut intervals, ray2);
 
@@ -348,16 +348,16 @@ impl VoxelBuffer for SparseBuffer {
 		self.get_occupancy_recurse(&self.root, total_voxels)
 	}
 
-	fn read(&self, i: i32, j: i32, k: i32) -> Vec3 {
+	fn read(&self, i: i32, j: i32, k: i32) -> vec3f {
 		if i < 0 || j < 0 || k < 0 || i >= self.size.0 || j >= self.size.1 || k >= self.size.2 {
-			Vec3::zero()
+			vec3f::zero()
 		} else {
 			self.read_recurse(&self.root, (i, j, k))
 		}
 	}
-	fn write(&mut self, i: i32, j: i32, k: i32, value: Vec3) {
+	fn write(&mut self, i: i32, j: i32, k: i32, value: vec3f) {
 		// Nested here because of some shitty error that self cannot be borrowed as mutable twice
-		fn recurse(mut node: &mut Octree, v: Vec3, p: (i32, i32, i32), min: (i32, i32, i32), max: (i32, i32, i32)) {
+		fn recurse(mut node: &mut Octree, v: vec3f, p: (i32, i32, i32), min: (i32, i32, i32), max: (i32, i32, i32)) {
 			match node {
 				Octree::Empty => {
 					*node = Octree::Branch( Box::new(TreeBranch {

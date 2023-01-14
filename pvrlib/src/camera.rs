@@ -1,20 +1,20 @@
-use crate::math::vec3::Vec3;
+use crate::math::vec3::vec3f;
 use crate::math::ray::Ray;
 
 pub struct Camera {
-    position: Vec3,
+    position: vec3f,
     // precalculation
-    top_left: Vec3,
-    horizontal: Vec3,
-    vertical: Vec3,
+    top_left: vec3f,
+    horizontal: vec3f,
+    vertical: vec3f,
     // basis
-    _u: Vec3,
-    _v: Vec3,
-    _w: Vec3,
+    _u: vec3f,
+    _v: vec3f,
+    _w: vec3f,
 }
 
 impl Camera {
-    pub fn new(position: Vec3, look_at: Vec3, up: Vec3, fov_y: f32, aspect_ratio: f32) -> Camera {
+    pub fn new(position: vec3f, look_at: vec3f, up: vec3f, fov_y: f32, aspect_ratio: f32) -> Camera {
         let theta = fov_y * std::f32::consts::PI / 180.0;
         let half_height = (theta * 0.5).tan();
         let half_width = aspect_ratio * half_height;

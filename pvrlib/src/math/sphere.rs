@@ -5,22 +5,22 @@ use crate::math::ray::*;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Sphere {
-    pub origin: Vec3,
+    pub origin: vec3f,
     pub radius: f32
 }
 
 impl Default for Sphere {
     // Unit sphere
     fn default() -> Self {
-        Sphere { origin: Vec3::zero(), radius: 1.0 }
+        Sphere { origin: vec3f::zero(), radius: 1.0 }
     }
 }
 
 pub struct SphereHit {
     pub valid: bool,
     pub ray_t: f32,   // ray time
-    pub normal: Vec3, // normal at hit point
-    pub origin: Vec3  // location of hit point
+    pub normal: vec3f, // normal at hit point
+    pub origin: vec3f  // location of hit point
 }
 
 impl Sphere {

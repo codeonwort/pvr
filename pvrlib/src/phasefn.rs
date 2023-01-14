@@ -8,12 +8,12 @@ pub const ISOTROPIC_PHASE_FN: f32 = 1.0 / (4.0 * std::f32::consts::PI);
 // between them will be not that hard.
 // Scattering prob. given incoming and outgoing directions.
 pub trait PhaseFunction : Sync {
-    fn probability(&self, wi: Vec3, wo: Vec3) -> f32;
+    fn probability(&self, wi: vec3f, wo: vec3f) -> f32;
 }
 
 pub struct Isotropic {}
 impl PhaseFunction for Isotropic {
-    fn probability(&self, _wi: Vec3, _wo: Vec3) -> f32 {
+    fn probability(&self, _wi: vec3f, _wo: vec3f) -> f32 {
         ISOTROPIC_PHASE_FN
     }
 }
@@ -27,7 +27,7 @@ pub struct HenyeyGreenstein {
     pub g: f32
 }
 impl PhaseFunction for HenyeyGreenstein {
-    fn probability(&self, wi: Vec3, wo: Vec3) -> f32 {
+    fn probability(&self, wi: vec3f, wo: vec3f) -> f32 {
         let g = self.g;
         let t = wi & wo;
         
@@ -44,7 +44,7 @@ pub struct DoubleHenyeyGreenstein {
     pub b: f32
 }
 impl PhaseFunction for DoubleHenyeyGreenstein {
-    fn probability(&self, wi: Vec3, wo: Vec3) -> f32 {
+    fn probability(&self, wi: vec3f, wo: vec3f) -> f32 {
         let g1 = self.g1;
         let g2 = self.g2;
         let b = self.b;

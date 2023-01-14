@@ -4,21 +4,21 @@ use crate::primitive::{Primitive, RasterizationPrimitive};
 use crate::volume::voxel::VoxelVolume;
 
 pub struct PyroclasticLine {
-    pub	p0: Vec3,   // World position of a vertex
-    pub	p1: Vec3,   // World position of another vertex
+    pub	p0: vec3f,   // World position of a vertex
+    pub	p1: vec3f,   // World position of another vertex
     pub	radius: f32 // Line thickness
 }
 
 impl PyroclasticLine {
-    pub fn density(&self, p: Vec3) -> Vec3 {
+    pub fn density(&self, p: vec3f) -> vec3f {
         let dist = self.closest_distance(p);
         if dist <= self.radius {
-            Vec3::one()
+            vec3f::one()
         } else {
-            Vec3::zero()
+            vec3f::zero()
         }
     }
-    fn closest_distance(&self, world_position: Vec3) -> f32 {
+    fn closest_distance(&self, world_position: vec3f) -> f32 {
         let u = self.p1 - self.p0;
         u.cross(world_position - self.p0).length() / u.length()
     }
@@ -54,7 +54,7 @@ impl RasterizationPrimitive for PyroclasticLine {
                     let filter_width = 1.0;
                     let pyro = pyroclastic(sphere_func, noise, filter_width);
 
-                    if density != Vec3::zero() {
+                    if density != vec3f::zero() {
                         let v = voxel_volume.get_buffer().read(x, y, z);
                         voxel_volume.get_buffer().write(x, y, z, v + density * pyro);
                     }

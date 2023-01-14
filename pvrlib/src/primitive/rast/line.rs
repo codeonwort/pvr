@@ -3,19 +3,19 @@ use crate::primitive::*;
 use crate::volume::voxel::VoxelVolume;
 
 pub struct Line {
-    pub	p0: Vec3,   // World position of a vertex
-    pub	p1: Vec3,   // World position of another vertex
+    pub	p0: vec3f,   // World position of a vertex
+    pub	p1: vec3f,   // World position of another vertex
     pub	radius: f32 // Line thickness
 }
 
 impl Line {
-    pub fn density(&self, p: Vec3) -> Vec3 {
+    pub fn density(&self, p: vec3f) -> vec3f {
         let u = self.p1 - self.p0;
         let dist = u.cross(p - self.p0).length() / u.length();
         if dist <= self.radius {
-            Vec3::one()
+            vec3f::one()
         } else {
-            Vec3::zero()
+            vec3f::zero()
         }
     }
 }
@@ -41,7 +41,7 @@ impl RasterizationPrimitive for Line {
                 for z in z_min .. z_max {
                     let vs_pos = vec3(x as f32, y as f32, z as f32);
                     let density = self.density(voxel_volume.voxel_to_world(vs_pos));
-                    if density != Vec3::zero() {
+                    if density != vec3f::zero() {
                         voxel_volume.get_buffer().write(x, y, z, density);
                     }
                 }

@@ -10,8 +10,8 @@ pub struct VoxelVolume {
     pub phase_fn: Box<dyn PhaseFunction>,
 
     // temp
-    pub emission_value: Vec3,
-    pub absorption_coeff: Vec3,
+    pub emission_value: vec3f,
+    pub absorption_coeff: vec3f,
 
     // #todo-refactor: transform for VoxelVolume
     // pub transform: Transform
@@ -23,35 +23,35 @@ impl VoxelVolume {
         &mut *self.buffer
     }
 
-    pub fn world_to_voxel(&self, p: Vec3) -> Vec3 {
-        fit(p, self.world_bounds.min, self.world_bounds.max, Vec3::zero(), self.buffer.get_sizef())
+    pub fn world_to_voxel(&self, p: vec3f) -> vec3f {
+        fit(p, self.world_bounds.min, self.world_bounds.max, vec3f::zero(), self.buffer.get_sizef())
     }
-    pub fn voxel_to_world(&self, p: Vec3) -> Vec3 {
-        fit(p, Vec3::zero(), self.buffer.get_sizef(), self.world_bounds.min, self.world_bounds.max)
+    pub fn voxel_to_world(&self, p: vec3f) -> vec3f {
+        fit(p, vec3f::zero(), self.buffer.get_sizef(), self.world_bounds.min, self.world_bounds.max)
     }
-    pub fn world_to_local(&self, world_position: Vec3) -> Vec3 {
+    pub fn world_to_local(&self, world_position: vec3f) -> vec3f {
         fit(world_position,
             self.world_bounds.min, self.world_bounds.max,
-            Vec3::zero(), Vec3::one())
+            vec3f::zero(), vec3f::one())
     }
 
-    pub fn sample_by_world_position(&self, p: Vec3) -> Vec3 {
+    pub fn sample_by_world_position(&self, p: vec3f) -> vec3f {
         let uvw = self.world_to_local(p);
         self.buffer.sample_by_local_position(uvw.x, uvw.y, uvw.z)
     }
 }
 
 impl Volume for VoxelVolume {
-    fn emission(&self, p: Vec3) -> Vec3 {
+    fn emission(&self, p: vec3f) -> vec3f {
         self.emission_value * self.sample_by_world_position(p)
     }
-    fn absorption(&self, p: Vec3) -> Vec3 {
+    fn absorption(&self, p: vec3f) -> vec3f {
         self.absorption_coeff * self.sample_by_world_position(p)
     }
-    fn scattering(&self, p: Vec3) -> Vec3 {
+    fn scattering(&self, p: vec3f) -> vec3f {
         self.sample_by_world_position(p)
     }
-    fn sample(&self, world_position : Vec3) -> VolumeSample {
+    fn sample(&self, world_position : vec3f) -> VolumeSample {
         let density = self.sample_by_world_position(world_position);
         VolumeSample {
             emission: self.emission_value * density,
@@ -63,7 +63,7 @@ impl Volume for VoxelVolume {
     fn set_phase_function(&mut self, phase_fn: Box<dyn PhaseFunction>) {
         self.phase_fn = phase_fn;
     }
-    fn phase_function(&self, _p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
+    fn phase_function(&self, _p: vec3f, wi: vec3f, wo: vec3f) -> f32 {
         self.phase_fn.probability(wi, wo)
     }
 

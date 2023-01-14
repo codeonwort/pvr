@@ -14,7 +14,7 @@ macro_rules! assert_eq_float {
 fn test_vec3() {
     // TEST: ctor
     {
-        let v = Vec3::new(123.0, 456.0, 789.0);
+        let v = vec3f::new(123.0, 456.0, 789.0);
         assert_eq!(v[0], 123.0);
         assert_eq!(v.y, 456.0);
         assert_eq!(v[2], 789.0);
@@ -75,8 +75,8 @@ fn test_vec3() {
     {
         let x = vec3(0.0, 3.0, 0.0);
         let y = vec3(4.0, 0.0, 0.0);
-        assert_eq_float!(Vec3::distance(x, y), 5.0);
-        assert_eq_float!(Vec3::distance_sq(x, y), 25.0);
+        assert_eq_float!(vec3f::distance(x, y), 5.0);
+        assert_eq_float!(vec3f::distance_sq(x, y), 25.0);
     }
 }
 

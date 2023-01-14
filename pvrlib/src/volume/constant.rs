@@ -11,13 +11,13 @@ pub enum ConstantVolumeShape {
 
 pub struct ConstantVolume {
     shape: ConstantVolumeShape,
-    center: Vec3,
+    center: vec3f,
     radius: f32,
     box_bounds: AABB,
 
-    emission_value: Vec3,
-    absorption_coeff: Vec3,
-    scattering_coeff: Vec3,
+    emission_value: vec3f,
+    absorption_coeff: vec3f,
+    scattering_coeff: vec3f,
 
     phase_fn: Box<dyn PhaseFunction>
 }
@@ -25,11 +25,11 @@ pub struct ConstantVolume {
 impl ConstantVolume {
     pub fn new(
         shape: ConstantVolumeShape,
-        center: Vec3,
+        center: vec3f,
         radius: f32,
-        emission: Vec3,
-        absorption: Vec3,
-        scattering: Vec3,
+        emission: vec3f,
+        absorption: vec3f,
+        scattering: vec3f,
         phase_fn: Box<dyn PhaseFunction>) -> ConstantVolume
     {
         let r = vec3(radius, radius, radius);
@@ -45,7 +45,7 @@ impl ConstantVolume {
         }
     }
 
-    fn contains(&self, p: Vec3) -> bool {
+    fn contains(&self, p: vec3f) -> bool {
         match self.shape {
             ConstantVolumeShape::Box => {
                 let sides = p - self.center;
@@ -100,16 +100,16 @@ impl ConstantVolume {
 }
 
 impl Volume for ConstantVolume {
-    fn emission(&self, p: Vec3) -> Vec3 {
-        if self.contains(p) { self.emission_value } else { Vec3::zero() }
+    fn emission(&self, p: vec3f) -> vec3f {
+        if self.contains(p) { self.emission_value } else { vec3f::zero() }
     }
-    fn absorption(&self, p: Vec3) -> Vec3 {
-        if self.contains(p) { self.absorption_coeff } else { Vec3::zero() }
+    fn absorption(&self, p: vec3f) -> vec3f {
+        if self.contains(p) { self.absorption_coeff } else { vec3f::zero() }
     }
-    fn scattering(&self, p: Vec3) -> Vec3 {
-        if self.contains(p) { self.scattering_coeff } else { Vec3::zero() }
+    fn scattering(&self, p: vec3f) -> vec3f {
+        if self.contains(p) { self.scattering_coeff } else { vec3f::zero() }
     }
-    fn sample(&self, world_position: Vec3) -> VolumeSample {
+    fn sample(&self, world_position: vec3f) -> VolumeSample {
         // #todo: Hmm... this should not be called if world_position is out of bounds at first.
         if self.contains(world_position) {
             return VolumeSample {
@@ -119,9 +119,9 @@ impl Volume for ConstantVolume {
             };
         } else {
             return VolumeSample {
-                emission: Vec3::zero(),
-                absorption_coeff: Vec3::zero(),
-                scattering_coeff: Vec3::zero()
+                emission: vec3f::zero(),
+                absorption_coeff: vec3f::zero(),
+                scattering_coeff: vec3f::zero()
             };
         }
     }
@@ -129,7 +129,7 @@ impl Volume for ConstantVolume {
     fn set_phase_function(&mut self, phase_fn: Box<dyn PhaseFunction>) {
         self.phase_fn = phase_fn;
     }
-    fn phase_function(&self, p: Vec3, wi: Vec3, wo: Vec3) -> f32 {
+    fn phase_function(&self, p: vec3f, wi: vec3f, wo: vec3f) -> f32 {
         if self.contains(p) {
             self.phase_fn.probability(wi, wo)
         } else {
@@ -145,7 +145,7 @@ impl Volume for ConstantVolume {
     }
 
     fn world_bounds(&self) -> AABB {
-        let r = Vec3::new(self.radius, self.radius, self.radius);
+        let r = vec3f::new(self.radius, self.radius, self.radius);
         AABB {
             min: self.center - r,
             max: self.center + r

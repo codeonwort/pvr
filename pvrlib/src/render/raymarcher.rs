@@ -17,8 +17,8 @@ dLi(p,w) = sigma_s * phase(w,w') * S(p,w')ds
 */
 
 pub struct IntegrationResult {
-    pub luminance: Vec3,
-    pub transmittance: Vec3
+    pub luminance: vec3f,
+    pub transmittance: vec3f
 }
 
 // #todo: UniformRaymarcher, AdaptiveRaymarcher
@@ -34,15 +34,15 @@ pub fn integrate_ray(
 	// Integration bounds
 	let intervals: Vec<(f32, f32)> = vol.find_intersections(ray);
 	
-	let mut T: Vec3 = Vec3::one(); // total transmittance
-	let mut L: Vec3 = Vec3::zero(); // total luminance
+	let mut T: vec3f = vec3f::one(); // total transmittance
+	let mut L: vec3f = vec3f::zero(); // total luminance
 
 	// Loop for primary ray
 	for (t_start, t_end) in intervals {
 		let mut t_current = t_start;
 	
 		while t_current < t_end {
-			let p_i: Vec3 = ray.at(t_current);
+			let p_i: vec3f = ray.at(t_current);
 
 			// Sample the volume
 			let vol_sample: VolumeSample = vol.sample(p_i);
@@ -50,7 +50,7 @@ pub fn integrate_ray(
 			let sigma_a = vol_sample.absorption_coeff;
 			let sigma_s = vol_sample.scattering_coeff;
 
-			let mut L_sc = Vec3::zero(); // luminance by scattering
+			let mut L_sc = vec3f::zero(); // luminance by scattering
 			
 			// Loop for secondary ray
 			for light in lights {
@@ -58,7 +58,7 @@ pub fn integrate_ray(
 				let wi = (light_sample.position - p_i).normalize();
 
 				// Transmittance between current sampling point and light source
-				let mut T_L: Vec3 = Vec3::one();
+				let mut T_L: vec3f = vec3f::one();
 				{
 					let mut t_L = 0.0;
 
@@ -87,7 +87,7 @@ pub fn integrate_ray(
 				L_sc += sigma_s * sc_prob * light_sample.luminance * T_L;
 			}
 			
-			let T_i: Vec3 = (-sigma_a * primary_step_size).exp();
+			let T_i: vec3f = (-sigma_a * primary_step_size).exp();
 
 			T *= T_i;
 			L += (L_em + L_sc) * T * primary_step_size;

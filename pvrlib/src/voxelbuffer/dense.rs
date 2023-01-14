@@ -7,14 +7,14 @@ pub struct DenseBuffer {
 	size_x: i32,
 	size_y: i32,
 	size_z: i32,
-	data: Vec<Vec3>,
+	data: Vec<vec3f>,
 }
 
 impl DenseBuffer {
 	pub fn new(size3d: (i32, i32, i32)) -> DenseBuffer {
 		let size = (size3d.0 * size3d.1 * size3d.2) as usize;
-		let mut data = Vec::<Vec3>::new();
-		data.resize(size, Vec3::zero());
+		let mut data = Vec::<vec3f>::new();
+		data.resize(size, vec3f::zero());
 
 		DenseBuffer {
 			size_x: size3d.0,
@@ -30,9 +30,9 @@ impl DenseBuffer {
 }
 
 impl VoxelBuffer for DenseBuffer {
-	fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> Vec3 {
+	fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> vec3f {
 		if u < 0.0 || v < 0.0 || w < 0.0 || u >= 1.0 || v >= 1.0 || w >= 1.0 {
-			Vec3::zero()
+			vec3f::zero()
 		} else {
 			let fx = 0.5 + u * (self.size_x as f32);
 			let fy = 0.5 + v * (self.size_y as f32);
@@ -40,10 +40,10 @@ impl VoxelBuffer for DenseBuffer {
 			let f = vec3(fx, fy, fz);
 			let a = f - f.floor();
 
-			let read_raw = |vf: Vec3| -> Vec3 {
+			let read_raw = |vf: vec3f| -> vec3f {
 				let ix = self.index(vf.x as i32, vf.y as i32, vf.z as i32);
 				if ix >= self.data.len() {
-					Vec3::zero()
+					vec3f::zero()
 				} else {
 					self.data[ix]
 				}
@@ -69,7 +69,7 @@ impl VoxelBuffer for DenseBuffer {
 	fn get_size(&self) -> (i32, i32, i32) {
 		(self.size_x, self.size_y, self.size_z)
 	}
-	fn get_sizef(&self) -> Vec3 {
+	fn get_sizef(&self) -> vec3f {
 		vec3(self.size_x as f32, self.size_y as f32, self.size_z as f32)
 	}
 
@@ -95,10 +95,10 @@ impl VoxelBuffer for DenseBuffer {
 	fn get_occupancy(&self) -> f32 { 1.0 }
 
 	// Raw read & write
-	fn read(&self, i: i32, j: i32, k: i32) -> Vec3 {
+	fn read(&self, i: i32, j: i32, k: i32) -> vec3f {
 		self.data[self.index(i, j, k)]
 	}
-	fn write(&mut self, i: i32, j: i32, k: i32, value: Vec3) -> () {
+	fn write(&mut self, i: i32, j: i32, k: i32, value: vec3f) -> () {
 		let ix = self.index(i, j, k);
 		self.data[ix] = value;
 	}

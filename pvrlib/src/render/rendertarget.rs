@@ -2,7 +2,7 @@ use crate::math::vec3::*;
 use crate::render::renderer::RenderRegion;
 
 pub struct RenderTarget {
-	pixels: Vec<Vec3>,
+	pixels: Vec<vec3f>,
 	width: usize,
 	height: usize
 }
@@ -10,14 +10,14 @@ pub struct RenderTarget {
 impl RenderTarget {
 
 	pub fn new(width: usize, height: usize) -> RenderTarget {
-		let mut pixels: Vec<Vec3> = Vec::new();
-		let black = Vec3::zero();
+		let mut pixels: Vec<vec3f> = Vec::new();
+		let black = vec3f::zero();
 		pixels.resize(width * height, black);
 		RenderTarget { pixels: pixels, width: width, height: height }
 	}
 
 	// Initialize all pixels with a single color
-	pub fn clear_color(&mut self, color: Vec3) {
+	pub fn clear_color(&mut self, color: vec3f) {
 		for it in self.pixels.iter_mut() {
 			*it = color;
 		}
@@ -41,7 +41,7 @@ impl RenderTarget {
 		let mut ptr = 0;
 		for y in 0..self.height {
 			for x in 0..self.width {
-				let px: Vec3 = self.get(x as i32, y as i32);
+				let px: vec3f = self.get(x as i32, y as i32);
 				let r: u8 = (((px.x * 255.0) as u32) & 0xff) as u8;
 				let g: u8 = (((px.y * 255.0) as u32) & 0xff) as u8;
 				let b: u8 = (((px.z * 255.0) as u32) & 0xff) as u8;
@@ -61,7 +61,7 @@ impl RenderTarget {
 		let mut ptr = 0;
 		for y in 0..self.height {
 			for x in 0..self.width {
-				let px: Vec3 = self.get(x as i32, y as i32);
+				let px: vec3f = self.get(x as i32, y as i32);
 				let r: u8 = (((px.x * 255.0) as u32) & 0xff) as u8;
 				let g: u8 = (((px.y * 255.0) as u32) & 0xff) as u8;
 				let b: u8 = (((px.z * 255.0) as u32) & 0xff) as u8;
@@ -75,17 +75,17 @@ impl RenderTarget {
 		buffer
 	}
 
-	pub fn set(&mut self, x: i32, y:i32, pixel: Vec3) {
+	pub fn set(&mut self, x: i32, y:i32, pixel: vec3f) {
 		let ix = self.index(x, y) as usize;
 		self.pixels[ix] = pixel
 	}
 
 	// Returns black color for out of range
-	pub fn get(&self, x: i32, y:i32) -> Vec3 {
+	pub fn get(&self, x: i32, y:i32) -> vec3f {
 		if self.contains(x, y) {
 			self.pixels[self.index(x, y) as usize]
 		} else {
-			Vec3::zero()
+			vec3f::zero()
 		}
 	}
 

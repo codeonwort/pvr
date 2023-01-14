@@ -7,17 +7,17 @@ use crate::math::noise::*; // pyroclastic test
 // A simple point with a pyroclastic fractal function attached.
 // Used for billowing smoke, cumulus-type cloud formations, etc.
 pub struct PyroclasticPoint {
-    pub center: Vec3,
+    pub center: vec3f,
     pub radius: f32
 }
 
 impl PyroclasticPoint {
-    fn density(&self, p: Vec3) -> Vec3 {
+    fn density(&self, p: vec3f) -> vec3f {
         let len = (self.center - p).length_sq();
         if len <= (self.radius * self.radius) {
-            Vec3::one()
+            vec3f::one()
         } else {
-            Vec3::zero()
+            vec3f::zero()
         }
     }
 }
@@ -28,8 +28,8 @@ impl Primitive for PyroclasticPoint {
 
 impl RasterizationPrimitive for PyroclasticPoint {
     fn rasterize(&self, voxel_volume: &mut VoxelVolume) {
-        let p_min: Vec3 = voxel_volume.world_to_voxel(self.center - self.radius.into());
-        let p_max: Vec3 = voxel_volume.world_to_voxel(self.center + self.radius.into());
+        let p_min: vec3f = voxel_volume.world_to_voxel(self.center - self.radius.into());
+        let p_max: vec3f = voxel_volume.world_to_voxel(self.center + self.radius.into());
         let (x_min, y_min, z_min) = (p_min.x as i32, p_min.y as i32, p_min.z as i32);
         let (x_max, y_max, z_max) = (p_max.x as i32, p_max.y as i32, p_max.z as i32);
 
@@ -70,7 +70,7 @@ impl RasterizationPrimitive for PyroclasticPoint {
                     let filter_width = 2.0;//ws_bounds.size().length() / self.radius;
                     let pyro = pyroclastic(sphere_func, noise, filter_width);
 
-					if density != Vec3::zero() {
+					if density != vec3f::zero() {
 	                    voxel_volume.get_buffer().write(x, y, z, density * pyro);
 					}
                 }

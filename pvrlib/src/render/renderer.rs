@@ -40,7 +40,7 @@ pub struct RenderRegion {
     pub y0: usize,
     pub x1: usize,
     pub y1: usize,
-    pub data: Vec<Vec3>
+    pub data: Vec<vec3f>
 }
 
 impl Renderer<'_> {

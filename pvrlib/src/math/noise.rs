@@ -21,7 +21,7 @@ fn clamp(x: f32, x_min: f32, x_max: f32) -> f32 {
         x
     }
 }
-pub fn noise(x: Vec3) -> f32 {
+pub fn noise(x: vec3f) -> f32 {
 	let step = vec3(110.0, 241.0, 171.0);
 	let i = x.floor();
 	let f = x.fract_glsl();
@@ -53,7 +53,7 @@ pub fn fBm(p: Vec3, octaves: i32, octave_gain: f32, lacunarity: f32) -> f32 {
 
 ///*
 #[allow(non_snake_case)]
-pub fn fBm(x0: Vec3) -> f32 {
+pub fn fBm(x0: vec3f) -> f32 {
     let mut x = x0;
 	let mut v: f32 = 0.0;
 	let mut a: f32 = 0.5;

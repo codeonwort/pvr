@@ -25,9 +25,9 @@ const Hr: f32                    = 7.994e3;
 const Hm: f32                    = 1.2e3;
 // Unit: 1 / meters
 #[allow(non_upper_case_globals)]
-const BetaR: Vec3                = Vec3 { x: 5.8e-6, y: 13.5e-6, z: 33.1e-6 };
+const BetaR: vec3f                = vec3f { x: 5.8e-6, y: 13.5e-6, z: 33.1e-6 };
 #[allow(non_upper_case_globals)]
-const BetaM: Vec3                = Vec3 { x: 21e-6, y: 21e-6, z: 21e-6 };
+const BetaM: vec3f                = vec3f { x: 21e-6, y: 21e-6, z: 21e-6 };
 
 #[allow(non_snake_case)]
 fn phaseR(cos_theta: f32) -> f32
@@ -48,7 +48,7 @@ fn phaseM(t: f32) -> f32
     num / denom
 }
 
-fn get_sun_image(camera_ray: Ray, sun_direction: Vec3, sun_size: f32, sun_intensity: f32) -> f32 {
+fn get_sun_image(camera_ray: Ray, sun_direction: vec3f, sun_size: f32, sun_intensity: f32) -> f32 {
     let threshold = (SUN_RADIUS / SUN_DISTANCE).asin();
     let angle = camera_ray.d.dot(-sun_direction).acos();
     if angle <= threshold * sun_size {
@@ -61,7 +61,7 @@ fn get_sun_image(camera_ray: Ray, sun_direction: Vec3, sun_size: f32, sun_intens
 // Generates atmospheric scattering
 pub struct SkyAtmosphere {
     is_empty: bool,
-    sun_direction: Vec3, // Sun incoming direction
+    sun_direction: vec3f, // Sun incoming direction
     sun_size: f32,
     sun_intensity: f32,
     atmosphere: Sphere
@@ -78,13 +78,13 @@ impl SkyAtmosphere {
             atmosphere: Sphere::default()
         }
     }
-    pub fn new_atmosphere(sun_direction: Vec3, sun_size: f32, sun_intensity: f32) -> SkyAtmosphere {
+    pub fn new_atmosphere(sun_direction: vec3f, sun_size: f32, sun_intensity: f32) -> SkyAtmosphere {
         SkyAtmosphere {
             is_empty: false,
             sun_direction: sun_direction.normalize(),
             sun_size: sun_size,
             sun_intensity: sun_intensity,
-            atmosphere: Sphere { origin: Vec3::zero(), radius: ATMOSPHERE_RADIUS }
+            atmosphere: Sphere { origin: vec3f::zero(), radius: ATMOSPHERE_RADIUS }
         }
     }
 
@@ -94,13 +94,13 @@ impl SkyAtmosphere {
 
     // #todo-sky: Multiple scattering
     #[allow(non_snake_case)]
-    pub fn sample(&self, ray: Ray) -> Vec3 {
+    pub fn sample(&self, ray: Ray) -> vec3f {
         if self.is_empty {
-            return Vec3::zero();
+            return vec3f::zero();
         }
 
         // Return value
-        let mut result = Vec3::zero();
+        let mut result = vec3f::zero();
 
         let sun_size = self.sun_size;
         let sun_dir = self.sun_direction;
@@ -109,7 +109,7 @@ impl SkyAtmosphere {
         let hit = self.atmosphere.intersect(ray);
         
         let mu = (-sun_dir).dot(ray.d);
-        let mut optical_depth = Vec3::zero();
+        let mut optical_depth = vec3f::zero();
 
         let P0 = ray.o;
         let mut P = P0;
@@ -138,7 +138,7 @@ impl SkyAtmosphere {
             let PL_step_size = ray2.d * light_segment_length;
             let mut PL = P;
 
-            let mut TL = Vec3::zero();
+            let mut TL = vec3f::zero();
             let mut apply_scattering = true;
             // From atmosphere boundary to the Sun
             for _j in 0..NUM_SECONDARY_STEPS {
@@ -158,7 +158,7 @@ impl SkyAtmosphere {
                 TL = (-TL).exp();
                 let curr_t = (-optical_depth).exp();
 
-                let mut single_scattering = Vec3::zero();
+                let mut single_scattering = vec3f::zero();
                 single_scattering += MAGIC_RAYLEIGH * segment_length * curr_t * (BetaR * (-height / Hr).exp()) * phaseR(mu) * (TL * sun_intensity);
                 single_scattering += MAGIC_MIE * segment_length * curr_t * (BetaM * (-height / Hm).exp()) * phaseM(mu) * (TL * sun_intensity);
                 
