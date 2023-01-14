@@ -1,6 +1,5 @@
 use pvrlib::math::vec3::*;
 use pvrlib::math::noise::*;
-use pvrlib::voxelbuffer::VoxelBuffer;
 use pvrlib::voxelbuffer::sparse::SparseField;
 use pvrlib::render::rendertarget::RenderTarget;
 
@@ -84,42 +83,30 @@ fn test_vec3() {
 
 #[test]
 fn test_sparse_buffer() {
-    let mut buffer = SparseField::<vec3f>::new((512, 512, 256));
+    //let mut buffer: SparseField<vec3f> = SparseField::new((512, 512, 256), vec3f::zero());
+    let mut buffer: SparseField<vec3f> = SparseField::new((271, 101, 115), vec3f::zero());
 
     println!("> write sparse buffer...");
-    buffer.write(0, 0, 0, vec3(3.0, 4.0, 5.0));
-    buffer.write(50, 0, 70, vec3(7.0, 5.0, 2.0));
-    buffer.write(5, 0, 99, vec3(8.0, 1.0, 6.0));
-    buffer.write(99, 99, 99, vec3(5.0, 3.0, 1.0));
-    buffer.write(46, 0, -270, vec3(31.0, 42.0, 53.0));
-    //for y in 0..512 { buffer.write(0, y, 0, vec3(y as f32, 1.0, 1.0)); }
+    buffer.write_raw((0, 0, 0), vec3(3.0, 4.0, 5.0));
+    buffer.write_raw((50, 0, 70), vec3(7.0, 5.0, 2.0));
+    buffer.write_raw((5, 0, 99), vec3(8.0, 1.0, 6.0));
+    buffer.write_raw((99, 99, 99), vec3(5.0, 3.0, 1.0));
+    for x in 1..270 {
+        buffer.write_raw((x, 0, 0), vec3(x as f32, 1.0, 1.0));
+    }
 
     println!("> read sparse buffer...");
-    assert_eq!(buffer.read(0, 0, 0), vec3(3.0, 4.0, 5.0));
-    assert_eq!(buffer.read(50, 0, 70), vec3(7.0, 5.0, 2.0));
-    assert_eq!(buffer.read(5, 0, 99), vec3(8.0, 1.0, 6.0));
-    assert_eq!(buffer.read(99, 99, 99), vec3(5.0, 3.0, 1.0));
+    assert_eq!(buffer.read_raw((0, 0, 0)), vec3(3.0, 4.0, 5.0));
+    assert_eq!(buffer.read_raw((50, 0, 70)), vec3(7.0, 5.0, 2.0));
+    assert_eq!(buffer.read_raw((5, 0, 99)), vec3(8.0, 1.0, 6.0));
+    assert_eq!(buffer.read_raw((99, 99, 99)), vec3(5.0, 3.0, 1.0));
     //assert_eq!(buffer.read(46, 0, -270), vec3(31.0, 42.0, 53.0));
     //for y in 0..512 { println!("buffer[0,{},0] = {:?}", y, buffer.read(0, y, 0)); }
 
-    /*
-    // Debug occupancy
-    {
-        let buffer_size = (64, 64, 64);
-        let mut buffer = SparseBuffer::new(buffer_size, bounds);
-        println!("> buffer size: {:?}", buffer_size);
+    assert_eq!(buffer.read_safe((200, 30, 100)), Some(vec3f::zero()));
+    assert_eq!(buffer.read_safe((1325, 0, 99)), None);
 
-        println!("> occupancy = {}", buffer.get_occupancy());
-
-        println!("> write to (0,0,0)");
-        buffer.write(0, 0, 0, vec3(1.0, 1.0, 1.0));
-        println!("> occupancy = {}", buffer.get_occupancy());
-
-        println!("> write to (63,63,63)");
-        buffer.write(63, 63, 63, vec3(1.0, 1.0, 1.0));
-        println!("> occupancy = {}", buffer.get_occupancy());
-    }
-    */
+    println!("occupancy = {}", buffer.get_occupancy());
 }
 
 #[test]
