@@ -24,7 +24,7 @@ use pvrlib::light::*;
 use pvrlib::camera::*;
 use pvrlib::scene::*;
 use pvrlib::phasefn::*;
-use pvrlib::voxelbuffer::dense::DenseBuffer;
+use pvrlib::voxelbuffer::dense::DenseField;
 use pvrlib::volume::Volume;
 use pvrlib::volume::voxel::*;
 use pvrlib::volume::constant::*;
@@ -359,7 +359,7 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
 
     // #todo-emptyspace: Sparse buffer is 20x times slower
     //let voxel_buffer = SparseBuffer::new(
-    let voxel_buffer = DenseBuffer::new(VOXEL_RESOLUTION);
+    let voxel_buffer = DenseField::new(VOXEL_RESOLUTION, vec3f::zero());
     let mut voxel_volume = VoxelVolume {
         buffer: Box::new(voxel_buffer),
         phase_fn: Box::new(DoubleHenyeyGreenstein{g1: 0.76, g2: -0.5, b: 0.2}),

@@ -8,25 +8,25 @@ use crate::math::ray::Ray;
 
 const BLOCK_SIZE: (i32, i32, i32) = (64, 64, 64);
 
-enum Octree {
+enum Octree<T> {
 	Empty,
-	Branch(Box<TreeBranch>),
-	Leaf(Box<TreeLeaf>)
+	Branch(Box<TreeBranch<T>>),
+	Leaf(Box<TreeLeaf<T>>)
 }
 
-struct TreeBranch {
+struct TreeBranch<T> {
 	min_bounds: (i32, i32, i32), // inclusive
 	max_bounds: (i32, i32, i32), // exclusive
-	pub children: [Octree; 8] // index = z | y | x
+	pub children: [Octree<T>; 8] // index = z | y | x
 }
 
-struct TreeLeaf {
+struct TreeLeaf<T> {
 	pub coord: (i32, i32, i32), // min bounds
 	pub size: (i32, i32, i32),
-	data: Vec<vec3f>
+	data: Vec<T>
 }
 
-impl TreeBranch {
+impl<T: Default + Clone> TreeBranch<T> {
 	pub fn contains(&self, p: (i32, i32, i32)) -> bool {
 		self.min_bounds.0 <= p.0 && p.0 < self.max_bounds.0
 			&& self.min_bounds.1 <= p.1 && p.1 < self.max_bounds.1
@@ -54,7 +54,7 @@ impl TreeBranch {
 				let size_z = self.max_bounds.2 - self.min_bounds.2;
 				if size_x <= BLOCK_SIZE.0 && size_y <= BLOCK_SIZE.1 && size_z <= BLOCK_SIZE.2 {
 					let mut data = Vec::new();
-					data.resize((size_x * size_y * size_z) as usize, vec3f::zero());
+					data.resize((size_x * size_y * size_z) as usize, T::default());
 					self.children[ix] = Octree::Leaf(Box::new(TreeLeaf {
 						coord: self.min_bounds,
 						size: (size_x, size_y, size_z),
@@ -95,12 +95,12 @@ impl TreeBranch {
 	}
 }
 
-impl TreeLeaf {
-	pub fn read(&self, p: (i32, i32, i32)) -> vec3f {
+impl<T: Default + Copy> TreeLeaf<T> {
+	pub fn read(&self, p: (i32, i32, i32)) -> T {
 		let ix = self.index(p);
 		self.data[ix]
 	}
-	pub fn write(&mut self, p: (i32, i32, i32), v: vec3f) {
+	pub fn write(&mut self, p: (i32, i32, i32), v: T) {
 		let ix = self.index(p);
 		self.data[ix] = v;
 	}
@@ -121,31 +121,33 @@ impl TreeLeaf {
 // -------------------------------------
 // Sparse buffer impl.
 
-pub struct SparseBuffer {
+// #todo-wip: Switch to simple grid, not octree.
+
+pub struct SparseField<T> {
 	size: (i32, i32, i32),
-	root: Octree
+	root: Octree<T>
 }
 
-impl SparseBuffer {
-	pub fn new(size: (i32, i32, i32)) -> SparseBuffer {
+impl<T: Default + Copy> SparseField<T> {
+	pub fn new(size: (i32, i32, i32)) -> SparseField<T> {
 		if size.0 <= 0 || size.1 <= 0 || size.2 <= 0 {
 			panic!("Invalid size: {:?}", size);
 		}
-		SparseBuffer {
+		SparseField {
 			size: size,
 			root: Octree::Empty
 		}
 	}
 
-	fn read_recurse(&self, node: &Octree, coord: (i32, i32, i32)) -> vec3f {
+	fn read_recurse(&self, node: &Octree<T>, coord: (i32, i32, i32)) -> T {
 		match node {
-			Octree::Empty => vec3f::zero(),
+			Octree::Empty => T::default(),
 			Octree::Branch(branch) => {
 				if branch.contains(coord) {
 					let ix = branch.select_child(coord);
 					self.read_recurse(&branch.children[ix], coord)
 				} else {
-					vec3f::zero()
+					T::default()
 				}
 			},
 			Octree::Leaf(leaf) => {
@@ -154,7 +156,7 @@ impl SparseBuffer {
 		}
 	}
 
-	fn get_occupancy_recurse(&self, node: &Octree, total_voxels: i32) -> f32 {
+	fn get_occupancy_recurse(&self, node: &Octree<T>, total_voxels: i32) -> f32 {
 		match node {
 			Octree::Empty => 0.0,
 			Octree::Branch(branch) => {
@@ -174,7 +176,7 @@ impl SparseBuffer {
 		}
 	}
 
-	fn find_leaf<'a>(&self, node: &'a Octree, coord: (i32, i32, i32)) -> Option<&'a TreeLeaf> {
+	fn find_leaf<'a>(&self, node: &'a Octree<T>, coord: (i32, i32, i32)) -> Option<&'a TreeLeaf<T>> {
 		match node {
 			Octree::Empty => None,
 			Octree::Branch(branch) => {
@@ -190,7 +192,7 @@ impl SparseBuffer {
 	}
 }
 
-impl VoxelBuffer for SparseBuffer {
+impl VoxelBuffer for SparseField<vec3f> {
 	fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> vec3f {
 		let vp = vec3(u, v, w) * self.get_sizef();
 		let f = (vp - vec3(0.5, 0.5, 0.5)).floor();
@@ -203,7 +205,7 @@ impl VoxelBuffer for SparseBuffer {
 		let mut values: [vec3f; 8] = [
 			vec3f::zero(), vec3f::zero(), vec3f::zero(), vec3f::zero(),
 			vec3f::zero(), vec3f::zero(), vec3f::zero(), vec3f::zero()];
-		let mut prev_node: Option<&TreeLeaf> = None;
+		let mut prev_node: Option<&TreeLeaf<vec3f>> = None;
 		for i in 0..8 {
 			let pos = f + sample_offsets[i];
 			let posi = (pos.x as i32, pos.y as i32, pos.z as i32);
@@ -273,7 +275,7 @@ impl VoxelBuffer for SparseBuffer {
 		fn to_vec3(iv: (i32, i32, i32)) -> vec3f {
 			vec3(iv.0 as f32, iv.1 as f32, iv.2 as f32)
 		}
-		fn recurse(node: &Octree, intervals: &mut Vec<(f32, f32)>, ray: Ray) {
+		fn recurse(node: &Octree<vec3f>, intervals: &mut Vec<(f32, f32)>, ray: Ray) {
 			match node {
 				Octree::Empty => {
 					return;
@@ -357,7 +359,7 @@ impl VoxelBuffer for SparseBuffer {
 	}
 	fn write(&mut self, i: i32, j: i32, k: i32, value: vec3f) {
 		// Nested here because of some shitty error that self cannot be borrowed as mutable twice
-		fn recurse(mut node: &mut Octree, v: vec3f, p: (i32, i32, i32), min: (i32, i32, i32), max: (i32, i32, i32)) {
+		fn recurse(mut node: &mut Octree<vec3f>, v: vec3f, p: (i32, i32, i32), min: (i32, i32, i32), max: (i32, i32, i32)) {
 			match node {
 				Octree::Empty => {
 					*node = Octree::Branch( Box::new(TreeBranch {

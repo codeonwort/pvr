@@ -1,7 +1,7 @@
 use pvrlib::math::vec3::*;
 use pvrlib::math::noise::*;
 use pvrlib::voxelbuffer::VoxelBuffer;
-use pvrlib::voxelbuffer::sparse::SparseBuffer;
+use pvrlib::voxelbuffer::sparse::SparseField;
 use pvrlib::render::rendertarget::RenderTarget;
 
 macro_rules! assert_eq_float {
@@ -80,10 +80,9 @@ fn test_vec3() {
     }
 }
 
-// #todo: Move to unit test
 #[test]
 fn test_sparse_buffer() {
-    let mut buffer = SparseBuffer::new((512, 512, 256));
+    let mut buffer = SparseField::<vec3f>::new((512, 512, 256));
 
     println!("> write sparse buffer...");
     buffer.write(0, 0, 0, vec3(3.0, 4.0, 5.0));

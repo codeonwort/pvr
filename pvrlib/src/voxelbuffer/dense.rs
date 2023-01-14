@@ -3,23 +3,23 @@ use crate::math::vec3::*;
 use crate::math::ray::Ray;
 use crate::math::aabb::AABB;
 
-pub struct DenseBuffer {
+pub struct DenseField<T> {
 	size_x: i32,
 	size_y: i32,
 	size_z: i32,
-	data: Vec<vec3f>,
+	data: Vec<T>,
 }
 
-impl DenseBuffer {
-	pub fn new(size3d: (i32, i32, i32)) -> DenseBuffer {
-		let size = (size3d.0 * size3d.1 * size3d.2) as usize;
-		let mut data = Vec::<vec3f>::new();
-		data.resize(size, vec3f::zero());
+impl<T: Clone> DenseField<T> {
+	pub fn new(size: (i32, i32, i32), value: T) -> DenseField<T> {
+		let total = (size.0 * size.1 * size.2) as usize;
+		let mut data = Vec::<T>::new();
+		data.resize(total, value);
 
-		DenseBuffer {
-			size_x: size3d.0,
-			size_y: size3d.1,
-			size_z: size3d.2,
+		DenseField {
+			size_x: size.0,
+			size_y: size.1,
+			size_z: size.2,
 			data: data
 		}
 	}
@@ -29,7 +29,7 @@ impl DenseBuffer {
 	}
 }
 
-impl VoxelBuffer for DenseBuffer {
+impl VoxelBuffer for DenseField<vec3f> {
 	fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> vec3f {
 		if u < 0.0 || v < 0.0 || w < 0.0 || u >= 1.0 || v >= 1.0 || w >= 1.0 {
 			vec3f::zero()
