@@ -68,6 +68,9 @@ impl vec3f {
     pub fn saturate(v: vec3f) -> vec3f {
         vec3f::max(vec3f::zero(), vec3f::min(vec3f::one(), v))
     }
+    pub fn abs(v: vec3f) -> vec3f {
+        vec3(v.x.abs(), v.y.abs(), v.z.abs())
+    }
 
     // Member methods
     pub fn dot(&self, rhs: vec3f) -> f32 {
