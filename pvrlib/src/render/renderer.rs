@@ -4,6 +4,7 @@ use crate::math::vec3::*;
 use crate::camera::Camera;
 use crate::scene::Scene;
 use crate::skyatmosphere::SkyAtmosphere;
+use crate::render::tone_mapping::*;
 
 use std::ops::Deref;
 use std::sync::*;
@@ -119,11 +120,8 @@ impl Renderer<'_> {
                     let sky_sample = scene.sky_atmosphere.sample(ray_on_earth);
                     luminance += sky_sample * transmittance;
 
-                    // #todo: Better tone mapping
-                    // tone mapping
-                    luminance = vec3(1.0, 1.0, 1.0) - (-luminance * exposure).exp();
-        
-                    // gamma correction
+                    // Tone mapping and gamma correction
+                    luminance = aces_tone_mapping(luminance * exposure);
                     luminance = luminance.pow(1.0 / gamma);
                     
                     // WTF Rust :(
