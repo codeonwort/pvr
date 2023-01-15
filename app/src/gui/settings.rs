@@ -1,6 +1,6 @@
 // Constructs all widgets for renderer settings.
 
-use druid::widget::{Flex, Label, TextBox, Widget, Container, SizedBox};
+use druid::widget::{Flex, Label, TextBox, Widget, Container, SizedBox, Checkbox};
 use druid::{LensWrap, Color};
 #[allow(unused_imports)]
 use druid::widget::{CrossAxisAlignment, MainAxisAlignment, Align};
@@ -8,7 +8,7 @@ use crate::app::*;
 
 pub fn build_ui_settings() -> impl Widget<AppState> {
     let label_settings = Label::new(|_data: &AppState, _env: &druid::Env| {
-            format!("Settings")
+            format!("[Renderer Settings]")
         });
 
     // #todo-gui: Use macro to create each row?
@@ -37,6 +37,9 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
     let stepsize2_input = LensWrap::new(TextBox::new(), AppState::secondary_step_size_input);
     let stepsize2_row = Flex::row().with_child(stepsize2_label).with_child(stepsize2_input);
 
+    let sky_checkbox = LensWrap::new(Checkbox::new("draw sky atmosphere"), AppState::draw_sky_input);
+    let sky_row = Flex::row().with_child(sky_checkbox);
+
     let col = Flex::column()
         .with_spacer(10.0)
         .with_child(label_settings)
@@ -50,6 +53,8 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
         .with_child(stepsize1_row)
         .with_spacer(20.0)
         .with_child(stepsize2_row)
+        .with_spacer(20.0)
+        .with_child(sky_row)
         .cross_axis_alignment(CrossAxisAlignment::Start);
         
     SizedBox::new(

@@ -54,5 +54,6 @@ fn get_default_render_settings() -> RenderSettings {
         gamma: GAMMA_VALUE,
         primary_step_size: STEP_SIZE_1ST,
         secondary_step_size: STEP_SIZE_2ND,
+        draw_sky: true,
     }
 }

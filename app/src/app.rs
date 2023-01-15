@@ -131,6 +131,7 @@ pub struct AppState {
     pub gamma_correction_input: String,
     pub primary_step_size_input: String,
     pub secondary_step_size_input: String,
+    pub draw_sky_input: bool,
     // Misc
     output_log: Arc<Mutex<Vec<String>>>,
     pub stopwatch: Stopwatch
@@ -160,6 +161,7 @@ impl AppState {
             gamma_correction_input: render_settings.gamma.to_string(),
             primary_step_size_input: render_settings.primary_step_size.to_string(),
             secondary_step_size_input: render_settings.secondary_step_size.to_string(),
+            draw_sky_input: render_settings.draw_sky,
             // Misc
             output_log: Arc::new(Mutex::new(logs)),
             stopwatch: Stopwatch::new()
@@ -173,6 +175,7 @@ impl AppState {
             gamma: self.default_gamma_correction,
             primary_step_size: self.default_primary_step_size,
             secondary_step_size: self.default_secondary_step_size,
+            draw_sky: true,
         };
 
         if let Ok(work_group_size_x_parsed) = self.work_group_size_x_input.parse::<usize>() {
@@ -194,6 +197,7 @@ impl AppState {
         if let Ok(stepsize2_parsed) = self.secondary_step_size_input.parse::<f32>() {
             settings.secondary_step_size = stepsize2_parsed.max(0.1);
         }
+        settings.draw_sky = self.draw_sky_input;
 
         settings
     }
@@ -428,6 +432,12 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     }
     child_volumes.push(Box::new(voxel_volume));
 
+    let sky_atmosphere = if render_settings.draw_sky {
+        SkyAtmosphere::new_atmosphere(vec3(-2.0, -1.0, 15.0), 5.0, 13.61839144264511)
+    } else {
+        SkyAtmosphere::new_empty()
+    };
+
     let scene = Scene {
         volume: Box::new(CompositeVolume {
             children: child_volumes
@@ -443,8 +453,7 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
                 intensity: vec3(10000.0, 1.0, 1.0)
             })
         ],
-        //sky_atmosphere: SkyAtmosphere::new_empty()
-        sky_atmosphere: SkyAtmosphere::new_atmosphere(vec3(-2.0, -1.0, 15.0), 5.0, 13.61839144264511)
+        sky_atmosphere: sky_atmosphere
     };
 
     // +x to right, +y to up, -z toward screen

@@ -17,7 +17,8 @@ pub struct RenderSettings {
     pub exposure: f32,
     pub gamma: f32,
     pub primary_step_size: f32,
-    pub secondary_step_size: f32
+    pub secondary_step_size: f32,
+    pub draw_sky: bool,
 }
 
 // Handles change of render progress.
