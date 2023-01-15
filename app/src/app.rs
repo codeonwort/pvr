@@ -131,6 +131,7 @@ pub struct AppState {
     default_camera_lookat_x: f32,
     default_camera_lookat_y: f32,
     default_camera_lookat_z: f32,
+    default_fov: f32,
     // These are set by GUI widgets
     pub work_group_size_x_input: String,
     pub work_group_size_y_input: String,
@@ -145,6 +146,7 @@ pub struct AppState {
     pub camera_lookat_x_input: String,
     pub camera_lookat_y_input: String,
     pub camera_lookat_z_input: String,
+    pub fov_input: String,
     // Misc
     output_log: Arc<Mutex<Vec<String>>>,
     pub stopwatch: Stopwatch
@@ -174,6 +176,8 @@ impl AppState {
             default_camera_lookat_x: render_settings.camera_lookat.x,
             default_camera_lookat_y: render_settings.camera_lookat.y,
             default_camera_lookat_z: render_settings.camera_lookat.z,
+            default_fov: render_settings.fov,
+            // Linked to druid widgets
             work_group_size_x_input: render_settings.work_group_size.0.to_string(),
             work_group_size_y_input: render_settings.work_group_size.1.to_string(),
             exposure_input: render_settings.exposure.to_string(),
@@ -187,6 +191,7 @@ impl AppState {
             camera_lookat_x_input: render_settings.camera_lookat.x.to_string(),
             camera_lookat_y_input: render_settings.camera_lookat.y.to_string(),
             camera_lookat_z_input: render_settings.camera_lookat.z.to_string(),
+            fov_input: render_settings.fov.to_string(),
             // Misc
             output_log: Arc::new(Mutex::new(logs)),
             stopwatch: Stopwatch::new()
@@ -203,6 +208,7 @@ impl AppState {
             draw_sky: true,
             camera_origin: vec3(self.default_camera_origin_x, self.default_camera_origin_y, self.default_camera_origin_z),
             camera_lookat: vec3(self.default_camera_lookat_x, self.default_camera_lookat_y, self.default_camera_lookat_z),
+            fov: self.default_fov
         };
 
         if let Ok(work_group_size_x_parsed) = self.work_group_size_x_input.parse::<usize>() {
@@ -242,6 +248,9 @@ impl AppState {
         }
         if let Ok(parsed) = self.camera_lookat_z_input.parse::<f32>() {
             settings.camera_lookat.z = parsed;
+        }
+        if let Ok(parsed) = self.fov_input.parse::<f32>() {
+            settings.fov = parsed;
         }
 
         settings
@@ -506,7 +515,7 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
         render_settings.camera_origin,
         render_settings.camera_lookat,
         vec3(0.0, 1.0, 0.0),   // upVector
-        FOV_Y,
+        render_settings.fov,
         aspect_ratio);
 
     // ----------------------------------------------------------

@@ -52,6 +52,10 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
         .with_child(LensWrap::new(TextBox::new(), AppState::camera_lookat_y_input))
         .with_child(LensWrap::new(TextBox::new(), AppState::camera_lookat_z_input));
 
+    let fov_row = Flex::row()
+        .with_child(Label::new("field of view: "))
+        .with_child(LensWrap::new(TextBox::new(), AppState::fov_input));
+
     let col = Flex::column()
         .with_spacer(10.0)
         .with_child(label_settings)
@@ -71,6 +75,8 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
         .with_child(camera_origin_row)
         .with_spacer(20.0)
         .with_child(camera_lookat_row)
+        .with_spacer(20.0)
+        .with_child(fov_row)
         .cross_axis_alignment(CrossAxisAlignment::Start);
         
     SizedBox::new(

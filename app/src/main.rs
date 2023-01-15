@@ -56,6 +56,7 @@ fn get_default_render_settings() -> RenderSettings {
         secondary_step_size: STEP_SIZE_2ND,
         draw_sky: true,
         camera_origin: CAMERA_ORIGIN,
-        camera_lookat: CAMERA_LOOKAT
+        camera_lookat: CAMERA_LOOKAT,
+        fov: FOV_Y
     }
 }

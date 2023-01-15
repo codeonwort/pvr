@@ -22,6 +22,7 @@ pub struct RenderSettings {
     pub draw_sky: bool,
     pub camera_origin: vec3f,
     pub camera_lookat: vec3f,
+    pub fov: f32,
 }
 
 // Handles change of render progress.
