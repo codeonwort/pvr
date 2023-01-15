@@ -106,7 +106,7 @@ fn test_sparse_buffer() {
     assert_eq!(buffer.read_safe((200, 30, 100)), Some(vec3f::zero()));
     assert_eq!(buffer.read_safe((1325, 0, 99)), None);
 
-    println!("occupancy = {}", buffer.get_occupancy());
+    println!("occupancy = {}", buffer.sparse_block_occupancy());
 }
 
 #[test]
