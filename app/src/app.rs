@@ -125,6 +125,13 @@ pub struct AppState {
     default_gamma_correction: f32,
     default_primary_step_size: f32,
     default_secondary_step_size: f32,
+    default_camera_origin_x: f32,
+    default_camera_origin_y: f32,
+    default_camera_origin_z: f32,
+    default_camera_lookat_x: f32,
+    default_camera_lookat_y: f32,
+    default_camera_lookat_z: f32,
+    // These are set by GUI widgets
     pub work_group_size_x_input: String,
     pub work_group_size_y_input: String,
     pub exposure_input: String,
@@ -132,6 +139,12 @@ pub struct AppState {
     pub primary_step_size_input: String,
     pub secondary_step_size_input: String,
     pub draw_sky_input: bool,
+    pub camera_origin_x_input: String,
+    pub camera_origin_y_input: String,
+    pub camera_origin_z_input: String,
+    pub camera_lookat_x_input: String,
+    pub camera_lookat_y_input: String,
+    pub camera_lookat_z_input: String,
     // Misc
     output_log: Arc<Mutex<Vec<String>>>,
     pub stopwatch: Stopwatch
@@ -155,6 +168,12 @@ impl AppState {
             default_gamma_correction: render_settings.gamma,
             default_primary_step_size: render_settings.primary_step_size,
             default_secondary_step_size: render_settings.secondary_step_size,
+            default_camera_origin_x: render_settings.camera_origin.x,
+            default_camera_origin_y: render_settings.camera_origin.y,
+            default_camera_origin_z: render_settings.camera_origin.z,
+            default_camera_lookat_x: render_settings.camera_lookat.x,
+            default_camera_lookat_y: render_settings.camera_lookat.y,
+            default_camera_lookat_z: render_settings.camera_lookat.z,
             work_group_size_x_input: render_settings.work_group_size.0.to_string(),
             work_group_size_y_input: render_settings.work_group_size.1.to_string(),
             exposure_input: render_settings.exposure.to_string(),
@@ -162,6 +181,12 @@ impl AppState {
             primary_step_size_input: render_settings.primary_step_size.to_string(),
             secondary_step_size_input: render_settings.secondary_step_size.to_string(),
             draw_sky_input: render_settings.draw_sky,
+            camera_origin_x_input: render_settings.camera_origin.x.to_string(),
+            camera_origin_y_input: render_settings.camera_origin.y.to_string(),
+            camera_origin_z_input: render_settings.camera_origin.z.to_string(),
+            camera_lookat_x_input: render_settings.camera_lookat.x.to_string(),
+            camera_lookat_y_input: render_settings.camera_lookat.y.to_string(),
+            camera_lookat_z_input: render_settings.camera_lookat.z.to_string(),
             // Misc
             output_log: Arc::new(Mutex::new(logs)),
             stopwatch: Stopwatch::new()
@@ -176,6 +201,8 @@ impl AppState {
             primary_step_size: self.default_primary_step_size,
             secondary_step_size: self.default_secondary_step_size,
             draw_sky: true,
+            camera_origin: vec3(self.default_camera_origin_x, self.default_camera_origin_y, self.default_camera_origin_z),
+            camera_lookat: vec3(self.default_camera_lookat_x, self.default_camera_lookat_y, self.default_camera_lookat_z),
         };
 
         if let Ok(work_group_size_x_parsed) = self.work_group_size_x_input.parse::<usize>() {
@@ -198,6 +225,24 @@ impl AppState {
             settings.secondary_step_size = stepsize2_parsed.max(0.1);
         }
         settings.draw_sky = self.draw_sky_input;
+        if let Ok(parsed) = self.camera_origin_x_input.parse::<f32>() {
+            settings.camera_origin.x = parsed;
+        }
+        if let Ok(parsed) = self.camera_origin_y_input.parse::<f32>() {
+            settings.camera_origin.y = parsed;
+        }
+        if let Ok(parsed) = self.camera_origin_z_input.parse::<f32>() {
+            settings.camera_origin.z = parsed;
+        }
+        if let Ok(parsed) = self.camera_lookat_x_input.parse::<f32>() {
+            settings.camera_lookat.x = parsed;
+        }
+        if let Ok(parsed) = self.camera_lookat_y_input.parse::<f32>() {
+            settings.camera_lookat.y = parsed;
+        }
+        if let Ok(parsed) = self.camera_lookat_z_input.parse::<f32>() {
+            settings.camera_lookat.z = parsed;
+        }
 
         settings
     }
@@ -458,10 +503,11 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
 
     // +x to right, +y to up, -z toward screen
     let camera = Camera::new(
-        vec3(0.0, 0.0, 70.0),  // origin
-        vec3(-15.0, 10.0, 0.0), // lookAt
+        render_settings.camera_origin,
+        render_settings.camera_lookat,
         vec3(0.0, 1.0, 0.0),   // upVector
-        FOV_Y, aspect_ratio);
+        FOV_Y,
+        aspect_ratio);
 
     // ----------------------------------------------------------
     // Rendering

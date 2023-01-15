@@ -40,6 +40,18 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
     let sky_checkbox = LensWrap::new(Checkbox::new("draw sky atmosphere"), AppState::draw_sky_input);
     let sky_row = Flex::row().with_child(sky_checkbox);
 
+    let camera_origin_row = Flex::row()
+        .with_child(Label::new("camera origin: "))
+        .with_child(LensWrap::new(TextBox::new(), AppState::camera_origin_x_input))
+        .with_child(LensWrap::new(TextBox::new(), AppState::camera_origin_y_input))
+        .with_child(LensWrap::new(TextBox::new(), AppState::camera_origin_z_input));
+
+    let camera_lookat_row = Flex::row()
+        .with_child(Label::new("camera lookat: "))
+        .with_child(LensWrap::new(TextBox::new(), AppState::camera_lookat_x_input))
+        .with_child(LensWrap::new(TextBox::new(), AppState::camera_lookat_y_input))
+        .with_child(LensWrap::new(TextBox::new(), AppState::camera_lookat_z_input));
+
     let col = Flex::column()
         .with_spacer(10.0)
         .with_child(label_settings)
@@ -55,6 +67,10 @@ pub fn build_ui_settings() -> impl Widget<AppState> {
         .with_child(stepsize2_row)
         .with_spacer(20.0)
         .with_child(sky_row)
+        .with_spacer(20.0)
+        .with_child(camera_origin_row)
+        .with_spacer(20.0)
+        .with_child(camera_lookat_row)
         .cross_axis_alignment(CrossAxisAlignment::Start);
         
     SizedBox::new(

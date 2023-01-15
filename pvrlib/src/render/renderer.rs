@@ -20,6 +20,8 @@ pub struct RenderSettings {
     pub primary_step_size: f32,
     pub secondary_step_size: f32,
     pub draw_sky: bool,
+    pub camera_origin: vec3f,
+    pub camera_lookat: vec3f,
 }
 
 // Handles change of render progress.
