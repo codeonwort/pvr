@@ -6,7 +6,7 @@ use std::fs::File;
 use std::sync::{Arc, Mutex};
 use std::env;
 
-use image::png::PngEncoder;
+use image::{png::PngEncoder, jpeg::JpegEncoder};
 use image::ColorType;
 
 use native_dialog::FileDialog;
@@ -353,7 +353,7 @@ pub fn build_gui() -> impl Widget<AppState> {
             if buffer.len() > 0 {
                 if let Some(filename) = browse_save_path() {
                     let path = filename.to_str().unwrap();
-                    print_rawbuffer(&buffer, IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32, path);
+                    print_rawbuffer_png(&buffer, IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32, path);
                     println!("> Write the result to {}", path);
                 }
             } else {
@@ -379,21 +379,27 @@ pub fn build_gui() -> impl Widget<AppState> {
         .with_flex_child(build_ui_output_log(), 0.15)
 }
 
-fn print_rendertarget(rendertarget: &RenderTarget, filepath: &str) {
-    let out_file = File::create(filepath).unwrap();
-    let encoder = PngEncoder::new(&out_file);
-
+fn print_rendertarget(rendertarget: &RenderTarget, filepath_png: &str, filepath_jpg: &str) {
     let buffer: Vec<u8> = rendertarget.generate_ldr_buffer();
     let width: u32 = rendertarget.get_width() as u32;
     let height: u32 = rendertarget.get_height() as u32;
     let color_type: ColorType = ColorType::Rgb8;
 
-    encoder.encode(&buffer, width, height, color_type).unwrap();
-
-    out_file.sync_all().unwrap();
+    {
+        let out_file = File::create(filepath_png).unwrap();
+        let encoder = PngEncoder::new(&out_file);
+        encoder.encode(&buffer, width, height, color_type).unwrap();
+        out_file.sync_all().unwrap();
+    }
+    {
+        let mut out_file = File::create(filepath_jpg).unwrap();
+        let mut encoder = JpegEncoder::new(&mut out_file);
+        encoder.encode(&buffer, width, height, color_type).unwrap();
+        out_file.sync_all().unwrap();
+    }
 }
 
-fn print_rawbuffer(buffer: &Vec<u8>, width: u32, height: u32, filepath: &str) {
+fn print_rawbuffer_png(buffer: &Vec<u8>, width: u32, height: u32, filepath: &str) {
     let out_file = File::create(filepath).unwrap();
     let encoder = PngEncoder::new(&out_file);
     let color_type: ColorType = ColorType::Rgb8;
@@ -534,9 +540,9 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
 
     stopwatch.stop();
     
-    println!("> Write the result to {}", FILENAME);
+    println!("> Write the result to {}, {}", FILENAME_PNG, FILENAME_JPG);
 
-    print_rendertarget(&rt, FILENAME);
+    print_rendertarget(&rt, FILENAME_PNG, FILENAME_JPG);
 
     println!("Done.");
     

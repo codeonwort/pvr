@@ -10,7 +10,8 @@ pub const WINDOW_HEIGHT: f64 = 900.0;
 
 pub const IMAGE_WIDTH: usize = 512;
 pub const IMAGE_HEIGHT: usize = 512;
-pub const FILENAME: &str = "output.png";
+pub const FILENAME_PNG: &str = "output.png";
+pub const FILENAME_JPG: &str = "output.jpg";
 
 // Default renderer settings
 pub const WORK_GROUP_SIZE: (usize, usize) = (16, 16);
