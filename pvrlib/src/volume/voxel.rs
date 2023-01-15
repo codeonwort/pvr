@@ -5,38 +5,42 @@ use crate::math::aabb::AABB;
 use crate::phasefn::PhaseFunction;
 use crate::voxelbuffer::VoxelBuffer;
 
+// #wip: Rename to DensityVoxelVolume.
+// Density-based voxel buffer.
 pub struct VoxelVolume {
-    pub buffer: Box<dyn VoxelBuffer>,
-    pub phase_fn: Box<dyn PhaseFunction>,
+    pub buffer: Box<dyn VoxelBuffer<f32>>,
 
-    // temp
     pub emission_value: vec3f,
     pub absorption_coeff: vec3f,
+    pub scattering_coeff: vec3f,
+    pub phase_fn: Box<dyn PhaseFunction>,
 
-    // #todo-refactor: transform for VoxelVolume
-    // pub transform: Transform
+    //pub transform: Transform // #todo-refactor: transform matrix
     pub world_bounds: AABB
 }
 
 impl VoxelVolume {
-    pub fn get_buffer(&mut self) -> &mut dyn VoxelBuffer {
+    pub fn get_buffer(&mut self) -> &mut dyn VoxelBuffer<f32> {
         &mut *self.buffer
     }
 
-    pub fn world_to_voxel(&self, p: vec3f) -> vec3f {
-        fit(p, self.world_bounds.min, self.world_bounds.max, vec3f::zero(), self.buffer.get_sizef())
+    /// world position to voxel coord.
+    pub fn world_to_voxel(&self, world_position: vec3f) -> vec3f {
+        fit(world_position, self.world_bounds.min, self.world_bounds.max, vec3f::zero(), self.buffer.get_sizef())
     }
-    pub fn voxel_to_world(&self, p: vec3f) -> vec3f {
-        fit(p, vec3f::zero(), self.buffer.get_sizef(), self.world_bounds.min, self.world_bounds.max)
+    /// voxel coord to world position.
+    pub fn voxel_to_world(&self, voxel_coord: vec3f) -> vec3f {
+        fit(voxel_coord, vec3f::zero(), self.buffer.get_sizef(), self.world_bounds.min, self.world_bounds.max)
     }
+    /// world position to local uvw in voxel volume.
     pub fn world_to_local(&self, world_position: vec3f) -> vec3f {
         fit(world_position,
             self.world_bounds.min, self.world_bounds.max,
             vec3f::zero(), vec3f::one())
     }
 
-    pub fn sample_by_world_position(&self, p: vec3f) -> vec3f {
-        let uvw = self.world_to_local(p);
+    pub fn sample_by_world_position(&self, world_position: vec3f) -> f32 {
+        let uvw = self.world_to_local(world_position);
         self.buffer.sample_by_local_position(uvw.x, uvw.y, uvw.z)
     }
 }
@@ -49,14 +53,14 @@ impl Volume for VoxelVolume {
         self.absorption_coeff * self.sample_by_world_position(p)
     }
     fn scattering_coeff(&self, p: vec3f) -> vec3f {
-        self.sample_by_world_position(p)
+        self.scattering_coeff * self.sample_by_world_position(p)
     }
     fn sample(&self, world_position : vec3f) -> VolumeSample {
         let density = self.sample_by_world_position(world_position);
         VolumeSample {
             emission: self.emission_value * density,
             absorption_coeff: self.absorption_coeff * density,
-            scattering_coeff: density
+            scattering_coeff: self.scattering_coeff * density
         }
     }
 

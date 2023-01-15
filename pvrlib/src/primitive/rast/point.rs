@@ -7,12 +7,12 @@ pub struct Point {
 }
 
 impl Point {
-    fn density(&self, p: vec3f) -> vec3f {
+    fn density(&self, p: vec3f) -> f32 {
         let len = (self.center - p).length_sq();
         if len <= (self.radius * self.radius) {
-            vec3f::one()
+            1.0
         } else {
-            vec3f::zero()
+            0.0
         }
     }
 }
@@ -35,7 +35,7 @@ impl RasterizationPrimitive for Point {
                 for z in z_min .. z_max {
                     let vs_pos = vec3(x as f32, y as f32, z as f32);
                     let density = self.density(voxel_volume.voxel_to_world(vs_pos));
-                    if density != vec3f::zero() {
+                    if density != 0.0 {
                         voxel_volume.get_buffer().write(x, y, z, density);
                     }
                 }

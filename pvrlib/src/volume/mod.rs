@@ -25,6 +25,7 @@ impl VolumeSample {
 }
 
 // Designed for physically based volumetric lighting.
+// #note: Do not introduce the concept of 'density' here.
 pub trait Volume : Sync {
 
     // ----------------------------------------------------------

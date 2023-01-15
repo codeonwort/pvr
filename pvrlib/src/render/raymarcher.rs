@@ -57,8 +57,8 @@ pub fn integrate_ray(
 				let light_sample: LightSample = light.sample(p_i, ray.d);
 				let wi = (light_sample.position - p_i).normalize();
 
-				// Transmittance between current sampling point and light source
-				let mut T_L: vec3f = vec3f::one();
+				let mut T_L: vec3f = vec3f::one(); // Transmittance(P -> light)
+				let mut tau = vec3f::zero(); // Optical thickness
 				{
 					let mut t_L = 0.0;
 
@@ -71,12 +71,13 @@ pub fn integrate_ray(
 						let p_L = p_i + wi * t_L;
 						let sigma_a_L = vol.absorption_coeff(p_L);
 
-						T_L *= (-sigma_a_L * secondary_step_size).exp();
-						t_L += secondary_step_size;
-						
-						if T_L.x < 0.01 && T_L.y < 0.01 && T_L.z < 0.01 {
+						tau += sigma_a_L * secondary_step_size;
+						T_L = (-tau).exp();
+						if T_L.max_component() < 0.01 {
 							break;
 						}
+
+						t_L += secondary_step_size;
 					}
 				}
 

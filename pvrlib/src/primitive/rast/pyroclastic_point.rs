@@ -1,5 +1,5 @@
 use crate::math::vec3::*;
-use crate::primitive::{Primitive, RasterizationPrimitive};
+use crate::primitive::*;
 use crate::volume::voxel::VoxelVolume;
 
 use crate::math::noise::*; // pyroclastic test
@@ -12,12 +12,12 @@ pub struct PyroclasticPoint {
 }
 
 impl PyroclasticPoint {
-    fn density(&self, p: vec3f) -> vec3f {
+    fn density(&self, p: vec3f) -> f32 {
         let len = (self.center - p).length_sq();
         if len <= (self.radius * self.radius) {
-            vec3f::one()
+            1.0
         } else {
-            vec3f::zero()
+            0.0
         }
     }
 }
@@ -70,7 +70,7 @@ impl RasterizationPrimitive for PyroclasticPoint {
                     let filter_width = 2.0;//ws_bounds.size().length() / self.radius;
                     let pyro = pyroclastic(sphere_func, noise, filter_width);
 
-					if density != vec3f::zero() {
+					if density != 0.0 {
 	                    voxel_volume.get_buffer().write(x, y, z, density * pyro);
 					}
                 }

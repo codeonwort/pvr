@@ -7,7 +7,7 @@ use crate::math::aabb::AABB;
 
 use std::marker::Sync;
 
-// #todo-refactor: Remove VoxelBuffer.
+// #wip: Remove VoxelBuffer?
 //
 // I should define my own struct and implement `Volume` trait
 // using `DenseField` or `SparseField` as I want.
@@ -20,10 +20,10 @@ use std::marker::Sync;
 //     scattering_coeff: vec3f  // constant, multiplied by density
 // }
 
-pub trait VoxelBuffer : Sync {
+pub trait VoxelBuffer<T> : Sync {
 	// Sample by uniform coordinates (0.0 <= u, v, w <= 1.0)
 	// Use read() to sample by raw coordinates.
-	fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> vec3f;
+	fn sample_by_local_position(&self, u: f32, v: f32, w: f32) -> T;
 
 	fn get_size(&self) -> (i32, i32, i32);
 	fn get_sizef(&self) -> vec3f;
@@ -34,8 +34,9 @@ pub trait VoxelBuffer : Sync {
 	// [0.0, 1.0] How many voxels have been materialized?
 	fn get_occupancy(&self) -> f32;
 
-	fn read(&self, i: i32, j: i32, k: i32) -> vec3f;
-	fn write(&mut self, i: i32, j: i32, k: i32, value: vec3f);
+	fn read(&self, i: i32, j: i32, k: i32) -> T;
+
+	fn write(&mut self, i: i32, j: i32, k: i32, value: T);
 
 	// #todo-voxel: Anti-aliasing
 	//fn read_aa(&self, uvw: Vec3) -> Vec3;

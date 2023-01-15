@@ -359,12 +359,13 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
 
     // #todo-emptyspace: Sparse buffer is 20x times slower
     //let voxel_buffer = SparseBuffer::new(
-    let voxel_buffer = DenseField::new(VOXEL_RESOLUTION, vec3f::zero());
+    let voxel_buffer = DenseField::new(VOXEL_RESOLUTION, 0.0);
     let mut voxel_volume = VoxelVolume {
         buffer: Box::new(voxel_buffer),
-        phase_fn: Box::new(DoubleHenyeyGreenstein{g1: 0.76, g2: -0.5, b: 0.2}),
         emission_value: vec3(0.0, 0.0, 0.0),
-        absorption_coeff: vec3(0.75, 0.92, 0.72),
+        absorption_coeff: vec3(0.7, 0.7, 0.7),
+        scattering_coeff: vec3(0.8, 0.8, 0.8),
+        phase_fn: Box::new(DoubleHenyeyGreenstein{g1: 0.76, g2: -0.5, b: 0.2}),
         world_bounds: AABB { min: vec3(-20.0, -20.0, -20.0), max: vec3(20.0, 20.0, 20.0) }
     };
 
