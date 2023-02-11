@@ -33,7 +33,7 @@ fn main() {
     }
 
     // Create and launch app.
-    let main_window = WindowDesc::new(build_gui)
+    let main_window = WindowDesc::new(build_gui())
         .title(WINDOW_TITLE)
         .window_size((WINDOW_WIDTH, WINDOW_HEIGHT));
 
@@ -42,7 +42,7 @@ fn main() {
     let delegate = PVRAppDelegate { event_sink: app.get_external_handle() };
 
     app.delegate(delegate)
-        .use_simple_logger()
+        .log_to_console()
         .launch(app_state)
         .expect("Failed to launch app");
 }

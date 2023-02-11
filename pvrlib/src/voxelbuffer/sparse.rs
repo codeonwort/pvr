@@ -230,7 +230,7 @@ impl<T> VoxelBuffer<T> for SparseField<T>
 
                 // #wip: Finish this
                 let end_pos = ray.at(t1);
-                let diff = vec3f::abs(endPos - startPos);
+                let diff = vec3f::abs(end_pos - start_pos);
                 let cell_sizef = self.get_cell_sizef();
 
                 let mut intervals = Vec::new();

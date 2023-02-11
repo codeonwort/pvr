@@ -1,6 +1,7 @@
 use std::thread;
 
 use druid::{AppDelegate, DelegateCtx, ExtEventSink, Target, Command, Env};
+use druid::Handled;
 
 use crate::app::{AppState, begin_render};
 use crate::app::{START_RENDER_TASK, UPDATE_RENDER_PROGRESS, FINISH_RENDER_TASK};
@@ -17,7 +18,7 @@ impl AppDelegate<AppState> for PVRAppDelegate {
         cmd: &Command,
         data: &mut AppState,
         _env: &Env
-    ) -> bool {
+    ) -> Handled {
         if cmd.is(START_RENDER_TASK) {
             if data.can_launch_render_job() {
                 data.stopwatch.start_without_marker();
@@ -32,6 +33,8 @@ impl AppDelegate<AppState> for PVRAppDelegate {
                 println!("Renderer is already busy (caught in the delegate)");
                 data.add_log("FAILED: Renderer is already busy");
             }
+            
+            return Handled::Yes;
         }
         if let Some(payload) = cmd.get(UPDATE_RENDER_PROGRESS) {
             let should_add_log = (payload.percent > 0) && (payload.percent > data.render_progress);
@@ -40,6 +43,8 @@ impl AppDelegate<AppState> for PVRAppDelegate {
             if should_add_log {
                 data.add_log(&format!("Progress: {} %", data.render_progress));
             }
+
+            return Handled::Yes;
         }
         if let Some(render_result) = cmd.get(FINISH_RENDER_TASK) {
             let mut ex_buffer = data.render_result.lock().unwrap();
@@ -54,9 +59,11 @@ impl AppDelegate<AppState> for PVRAppDelegate {
             let elapsed_sec = data.stopwatch.stop_without_marker();
             data.add_log(&format!("CPU cores: {}, clock: {} MHz", num_cores, cpu_clock_mhz));
             data.add_log(&format!("Rendering time: {} seconds", elapsed_sec));
+
+            return Handled::Yes;
         }
 
-        true
+        Handled::No
     }
 }
 
