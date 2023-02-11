@@ -92,7 +92,7 @@ impl RenderProgress for RenderProgressWithDruid {
                     region: subregion.clone()
                 };
                 _sink
-                    .submit_command(UPDATE_RENDER_PROGRESS, payload, None)
+                    .submit_command(UPDATE_RENDER_PROGRESS, payload, druid::Target::Auto)
                     .expect("Failed to submit: UPDATE_RENDER_PROGRESS");
             }
         }
@@ -340,8 +340,8 @@ pub fn build_gui() -> impl Widget<AppState> {
         .on_click(|_ctx, data: &mut AppState, _env| {
             // Run async render job
             if data.can_launch_render_job() {
-                let cmd = Command::new(START_RENDER_TASK, 0);
-                _ctx.submit_command(cmd, None);
+                let cmd = Command::new(START_RENDER_TASK, 0, druid::Target::Auto);
+                _ctx.submit_command(cmd);
             } else {
                 println!("ERROR: Renderer is already busy (caught in button widget)");
             }
@@ -453,7 +453,7 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     
     match &sink {
         Some(_sink) => {
-            _sink.submit_command(FINISH_RENDER_TASK, rt, None)
+            _sink.submit_command(FINISH_RENDER_TASK, rt, druid::Target::Auto)
                 .expect("Failed to submit: FINISH_RENDER_TARGET");
         },
         None => {
