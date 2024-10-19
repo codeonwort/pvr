@@ -415,11 +415,56 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     let mut stopwatch = Stopwatch::new();
 
     // ----------------------------------------------------------
-    // Modeling (#todo: move to modeler)
+    // Modeling
     
     println!("> Rasterizing primitives into voxel buffer...");
 
-    stopwatch.start("rasterization");
+    let scene = create_model(render_settings.draw_sky, &mut stopwatch);
+
+    // +x to right, +y to up, -z toward screen
+    let camera = Camera::new(
+        render_settings.camera_origin,
+        render_settings.camera_lookat,
+        vec3(0.0, 1.0, 0.0),   // upVector
+        render_settings.fov,
+        aspect_ratio);
+
+    // ----------------------------------------------------------
+    // Rendering
+    println!("> Rendering the voxel buffer...");
+    stopwatch.start("raymarching");
+
+    let sink_clone = match &sink {
+        Some(_sink) => Some(_sink.clone()),
+        None => None
+    };
+    let mut progress = Mutex::new(RenderProgressWithDruid::new(sink_clone));
+
+    let mut renderer = Renderer::new(render_settings, &mut rt, &mut progress);
+    renderer.render(&camera, &scene);
+
+    stopwatch.stop();
+    
+    println!("> Write the result to {}, {}", FILENAME_PNG, FILENAME_JPG);
+
+    print_rendertarget(&rt, FILENAME_PNG, FILENAME_JPG);
+
+    println!("Done.");
+    
+    match &sink {
+        Some(_sink) => {
+            _sink.submit_command(FINISH_RENDER_TASK, rt, None)
+                .expect("Failed to submit: FINISH_RENDER_TARGET");
+        },
+        None => {
+            //
+        }
+    }
+}
+
+// #todo-model: Read from file rather than hard coding.
+fn create_model(draw_sky: bool, stopwatch: &mut Stopwatch) -> Scene {
+    stopwatch.start("modeling");
 
     // #todo-emptyspace: Sparse buffer is 20x times slower
     //let voxel_buffer = SparseBuffer::new(
@@ -461,8 +506,6 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
 
     println!("Buffer occupancy: {}", voxel_volume.get_buffer().get_occupancy());
 
-    stopwatch.stop();
-
     let mut child_volumes: Vec<Box<dyn Volume>> = vec![];
     {
         let v0 = vec3(-20.0, 0.0, 0.0);
@@ -492,67 +535,31 @@ pub fn begin_render(sink: Option<ExtEventSink>, render_settings: RenderSettings)
     }
     child_volumes.push(Box::new(voxel_volume));
 
-    let sky_atmosphere = if render_settings.draw_sky {
+    // #todo-light: These intensities are too big? Something wrong with lighting calculation?
+    let lights: Vec<Box<dyn Light>> = vec![
+        Box::new(PointLight {
+            position: vec3(30.0, 5.0, 30.0),
+            intensity: vec3(1.0, 1.0, 10000.0)
+        }),
+        Box::new(PointLight {
+            position: vec3(-30.0, 0.0, -30.0),
+            intensity: vec3(10000.0, 1.0, 1.0)
+        })
+    ];
+
+    let sky_atmosphere = if draw_sky {
         SkyAtmosphere::new_atmosphere(vec3(-2.0, -1.0, 15.0), 5.0, 13.61839144264511)
     } else {
         SkyAtmosphere::new_empty()
     };
 
+    stopwatch.stop();
+
     let scene = Scene {
-        volume: Box::new(CompositeVolume {
-            children: child_volumes
-        }),
-        // #todo-light: These intensities are too big? Something wrong with lighting calculation?
-        lights: vec![
-            Box::new(PointLight {
-                position: vec3(30.0, 5.0, 30.0),
-                intensity: vec3(1.0, 1.0, 10000.0)
-            }),
-            Box::new(PointLight {
-                position: vec3(-30.0, 0.0, -30.0),
-                intensity: vec3(10000.0, 1.0, 1.0)
-            })
-        ],
+        volume: Box::new(CompositeVolume { children: child_volumes }),
+        lights: lights,
         sky_atmosphere: sky_atmosphere
     };
 
-    // +x to right, +y to up, -z toward screen
-    let camera = Camera::new(
-        render_settings.camera_origin,
-        render_settings.camera_lookat,
-        vec3(0.0, 1.0, 0.0),   // upVector
-        render_settings.fov,
-        aspect_ratio);
-
-    // ----------------------------------------------------------
-    // Rendering
-    println!("> Rendering the voxel buffer...");
-    stopwatch.start("raymarching");
-
-    let sink_clone = match &sink {
-        Some(_sink) => Some(_sink.clone()),
-        None => None
-    };
-    let mut progress = Mutex::new(RenderProgressWithDruid::new(sink_clone));
-
-    let mut renderer = Renderer::new(render_settings, &mut rt, &mut progress);
-    renderer.render(&camera, &scene);
-
-    stopwatch.stop();
-    
-    println!("> Write the result to {}, {}", FILENAME_PNG, FILENAME_JPG);
-
-    print_rendertarget(&rt, FILENAME_PNG, FILENAME_JPG);
-
-    println!("Done.");
-    
-    match &sink {
-        Some(_sink) => {
-            _sink.submit_command(FINISH_RENDER_TASK, rt, None)
-                .expect("Failed to submit: FINISH_RENDER_TARGET");
-        },
-        None => {
-            //
-        }
-    }
+    return scene;
 }
